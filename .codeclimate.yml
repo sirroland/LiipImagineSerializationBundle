@@ -1,0 +1,25 @@
+---
+engines:
+  duplication:
+    enabled: true
+    config:
+      languages:
+      - php
+  fixme:
+    enabled: true
+  phpmd:
+    enabled: true
+    config:
+      file_extensions: "php"
+  phpcodesniffer:
+    enabled: true
+    config:
+      file_extensions: "php"
+      standard: "./vendor/escapestudios/symfony2-coding-standard/Symfony2"
+      ignore_warnings: true
+ratings:
+  paths:
+    - "**.php"
+exclude_paths:
+  - .idea/**/*
+  - vendor/**/*

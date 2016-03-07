@@ -1,0 +1,37 @@
+{
+    "name": "bukashk0zzz/liip-imagine-serialization-bundle",
+    "description": "Provides integration between LiipImagineBundle and JMSSerializerBundle.",
+    "keywords": ["bundle", "symfony", "JMSSerializerBundle", "LiipImagineBundle", "serialization", "liip", "imagine", "integration"],
+    "homepage": "https://github.com/bukashk0zzz/LiipImagineSerializationBundle",
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Denis Golubovskiy",
+            "email": "bukashk0zzz@gmail.com",
+            "role": "Creator"
+        }
+    ],
+    "support": {
+        "email": "bukashk0zzz@gmail.com",
+        "issues": "https://github.com/bukashk0zzz/LiipImagineSerializationBundle/issues"
+    },
+    "require": {
+        "php": ">=5.6.0",
+        "symfony/symfony": "~2.7|~3.0",
+        "doctrine/orm": "~2.5",
+        "jms/serializer-bundle": "~1.1",
+        "liip/imagine-bundle": "~1.3",
+        "vich/uploader-bundle": "dev-master"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~5.0",
+        "squizlabs/php_codesniffer": "^2.5",
+        "escapestudios/symfony2-coding-standard": "~2.7"
+    },
+    "autoload": {
+        "psr-4": {
+            "Bukashk0zzz\\LiipImagineSerializationBundle\\": ""
+        }
+    }
+}
