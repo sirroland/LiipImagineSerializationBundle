@@ -64,10 +64,10 @@ use Bukashk0zzz\LiipImagineSerializationBundle\Annotation as Bukashk0zzz;
 ```
 
 Bundle provides two annotations which allow the serialization of url or `@Vich\UploadableField` fields in your entities.
-At first you have to add `@Bukashk0zzz\LiipImagineSerializationClass` to the entity class which has image fields.
+At first you have to add `@Bukashk0zzz\LiipImagineSerializableClass` to the entity class which has image fields.
 Then you have to add `@Bukashk0zzz\LiipImagineSerializableField` annotation to the field you want to serialize.
 
-Annotation `@Bukashk0zzz\LiipImagineSerializationClass` does not have any option.  
+Annotation `@Bukashk0zzz\LiipImagineSerializableClass` does not have any option.  
 Annotation `@Bukashk0zzz\LiipImagineSerializableField` has one required option *filter* which value should link to the LiipImagine filter .
 It can be set like this `@Bukashk0zzz\LiipImagineSerializableField("photoFile")` or `@Bukashk0zzz\LiipImagineSerializableField(filter="photoFile")`.
 Also there is another two not required options: 
@@ -114,7 +114,7 @@ use Bukashk0zzz\LiipImagineSerializationBundle\Annotation as Bukashk0zzz;
  * @ORM\Entity()
  *
  * @Vich\Uploadable
- * @Bukashk0zzz\LiipImagineSerializationClass
+ * @Bukashk0zzz\LiipImagineSerializableClass
  */
 class User
 {    

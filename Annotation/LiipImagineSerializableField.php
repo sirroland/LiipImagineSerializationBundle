@@ -38,6 +38,11 @@ final class LiipImagineSerializableField implements Annotation
      */
     private $virtualField;
 
+    /**
+     * @var array $options Options
+     */
+    private $options;
+
 
     /**
      * Constructor
@@ -48,34 +53,24 @@ final class LiipImagineSerializableField implements Annotation
      */
     public function __construct(array $options)
     {
-        if (!array_key_exists('value', $options) && !array_key_exists('filter', $options)) {
+        $this->options = $options;
+
+        if (!array_key_exists('value', $this->options) && !array_key_exists('filter', $this->options)) {
             throw new \LogicException(sprintf('Either "value" or "filter" option must be set.'));
         }
 
-        if (array_key_exists('value', $options)) {
-            if (!is_string($options['value'])) {
-                throw new \InvalidArgumentException(sprintf('Option "value" must be a string.'));
-            }
+        if ($this->checkOption('value')) {
             $this->setFilter($options['value']);
-        } elseif (array_key_exists('filter', $options)) {
-            if (!is_string($options['filter'])) {
-                throw new \InvalidArgumentException(sprintf('Option "filter" must be a string.'));
-            }
-            $this->setFilter($options['filter']);
+        } elseif ($this->checkOption('filter')) {
+            $this->setFilter($this->options['filter']);
         }
 
-        if (array_key_exists('vichUploaderField', $options)) {
-            if (!is_string($options['vichUploaderField'])) {
-                throw new \InvalidArgumentException(sprintf('Option "vichUploaderField" must be a string.'));
-            }
-            $this->setVichUploaderField($options['vichUploaderField']);
+        if ($this->checkOption('vichUploaderField')) {
+            $this->setVichUploaderField($this->options['vichUploaderField']);
         }
 
-        if (array_key_exists('virtualField', $options)) {
-            if (!is_string($options['virtualField'])) {
-                throw new \InvalidArgumentException(sprintf('Option "virtualField" must be a string.'));
-            }
-            $this->setVirtualField($options['virtualField']);
+        if ($this->checkOption('virtualField')) {
+            $this->setVirtualField($this->options['virtualField']);
         }
     }
 
@@ -134,5 +129,21 @@ final class LiipImagineSerializableField implements Annotation
         $this->virtualField = $virtualField;
 
         return $this;
+    }
+
+    /**
+     * @param $optionName
+     * @return bool
+     * @throws \Exception
+     */
+    private function checkOption($optionName) {
+        if (array_key_exists($optionName, $this->options)) {
+            if (!is_string($this->options[$optionName])) {
+                throw new \InvalidArgumentException(sprintf('Option "'.$optionName.'" must be a string.'));
+            }
+            return true;
+        }
+
+        return false;
     }
 }

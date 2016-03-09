@@ -16,24 +16,33 @@ use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\Common\Annotations\CachedReader;
 use Doctrine\Common\Cache\ArrayCache;
+use JMS\Serializer\Construction\UnserializeObjectConstructor;
+use JMS\Serializer\Handler\HandlerRegistry;
+use JMS\Serializer\Metadata\Driver\AnnotationDriver;
 use JMS\Serializer\DeserializationContext;
 use JMS\Serializer\EventDispatcher\ObjectEvent;
 use JMS\Serializer\EventDispatcher\Events as JmsEvents;
 use JMS\Serializer\EventDispatcher\EventDispatcherInterface;
+use JMS\Serializer\GraphNavigator;
+use JMS\Serializer\JsonSerializationVisitor;
+use JMS\Serializer\Naming\CamelCaseNamingStrategy;
+use JMS\Serializer\Naming\SerializedNameAnnotationStrategy;
+use JMS\Serializer\SerializerBuilder;
+use Metadata\MetadataFactory;
 use Symfony\Component\Routing\RequestContext;
 use JMS\Serializer\EventDispatcher\EventDispatcher;
 use Vich\UploaderBundle\Storage\StorageInterface;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Liip\ImagineBundle\Imagine\Cache\Signer;
-use Bukashk0zzz\LiipImagineSerializationBundle\EventListener\JmsPostSerializeListener;
+use Bukashk0zzz\LiipImagineSerializationBundle\EventListener\JmsSerializeListener;
 use Bukashk0zzz\LiipImagineSerializationBundle\Tests\Fixtures\User;
 
 /**
- * JmsPostSerializeListenerTest
+ * JmsSerializeListenerTest
  *
  * @author Artem Genvald <genvaldartem@gmail.com>
  */
-class JmsPostSerializeListenerTest extends \PHPUnit_Framework_TestCase
+class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @var EventDispatcherInterface $dispatcher Dispatcher
@@ -61,6 +70,11 @@ class JmsPostSerializeListenerTest extends \PHPUnit_Framework_TestCase
     private $vichStorage;
 
     /**
+     * @var DeserializationContext $context JMS context
+     */
+    private $context;
+
+    /**
      * @var string $filePath Image file path
      */
     private $filePath;
@@ -74,6 +88,7 @@ class JmsPostSerializeListenerTest extends \PHPUnit_Framework_TestCase
         $this->filePath = (new User())->getCoverUrl();
         $this->annotationReader = new CachedReader(new AnnotationReader(), new ArrayCache());
         $this->generateVichStorage();
+        $this->generateContext();
     }
 
     /**
@@ -90,6 +105,24 @@ class JmsPostSerializeListenerTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test virtualField serialization
+     */
+    public function testVirtualFieldSerialization()
+    {
+        $user = new User();
+        $this->generateCacheManager();
+        $this->generateRequestContext();
+        $serializer = SerializerBuilder::create()->configureListeners(function (EventDispatcher $dispatcher) {
+            $this->addEvents($dispatcher);
+        })->build();
+        $result = $serializer->serialize($user, 'json');
+
+        static::assertJson($result);
+        $data = json_decode($result, true);
+        static::assertEquals('http://a/path/to/an/image3.png', $data['imageThumb']);
+    }
+
+    /**
      * Test serialization
      */
     public function testSerialization()
@@ -97,28 +130,16 @@ class JmsPostSerializeListenerTest extends \PHPUnit_Framework_TestCase
         $user = new User();
         $this->generateCacheManager();
         $this->generateRequestContext();
-        $context = DeserializationContext::create();
-
-        /** @noinspection PhpParamsInspection */
-        $event = new ObjectEvent($context, $user, []);
-        $this->dispatcher->dispatch(JmsEvents::POST_SERIALIZE, User::class, $context->getFormat(), $event);
-
+        $this->dispatchEvents($user);
         static::assertEquals('http://a/path/to/an/image1.png', $user->getCoverUrl());
-        /** @noinspection PhpUndefinedFieldInspection */
-        static::assertEquals('http://a/path/to/an/image2.png', $user->imageThumb);
-        static::assertEquals('http://a/path/to/an/image3.png', $user->getPhotoName());
+        static::assertEquals('http://a/path/to/an/image2.png', $user->getPhotoName());
 
         // Serialize same object second time (check cache)
-        $context = DeserializationContext::create();
-
-        /** @noinspection PhpParamsInspection */
-        $event = new ObjectEvent($context, $user, []);
-        $this->dispatcher->dispatch(JmsEvents::POST_SERIALIZE, User::class, $context->getFormat(), $event);
+        $this->generateContext();
+        $this->dispatchEvents($user);
 
         static::assertEquals('http://a/path/to/an/image1.png', $user->getCoverUrl());
-        /** @noinspection PhpUndefinedFieldInspection */
-        static::assertEquals('http://a/path/to/an/image2.png', $user->imageThumb);
-        static::assertEquals('http://a/path/to/an/image3.png', $user->getPhotoName());
+        static::assertEquals('http://a/path/to/an/image2.png', $user->getPhotoName());
         static::assertEquals($this->filePath, $user->getImageUrl());
     }
 
@@ -128,17 +149,11 @@ class JmsPostSerializeListenerTest extends \PHPUnit_Framework_TestCase
     public function testProxySerialization()
     {
         $user = new UserPictures();
-        $this->generateCacheManager(2);
+        $this->generateCacheManager();
         $this->generateRequestContext(false, true);
-        $context = DeserializationContext::create();
-
-        /** @noinspection PhpParamsInspection */
-        $event = new ObjectEvent($context, $user, []);
-        $this->dispatcher->dispatch(JmsEvents::POST_SERIALIZE, User::class, $context->getFormat(), $event);
+        $this->dispatchEvents($user);
 
         static::assertEquals('http://a/path/to/an/image1.png', $user->getCoverUrl());
-        /** @noinspection PhpUndefinedFieldInspection */
-        static::assertEquals('http://a/path/to/an/image2.png', $user->photoThumb);
         static::assertEquals('http://example.com:8000/uploads/photo.jpg', $user->getPhotoName());
         static::assertEmpty($user->getImageUrl());
     }
@@ -149,13 +164,9 @@ class JmsPostSerializeListenerTest extends \PHPUnit_Framework_TestCase
     public function testHttpsSerialization()
     {
         $user = new UserPictures();
-        $this->generateCacheManager(2);
+        $this->generateCacheManager();
         $this->generateRequestContext(true, true);
-        $context = DeserializationContext::create();
-
-        /** @noinspection PhpParamsInspection */
-        $event = new ObjectEvent($context, $user, []);
-        $this->dispatcher->dispatch(JmsEvents::POST_SERIALIZE, User::class, $context->getFormat(), $event);
+        $this->dispatchEvents($user);
 
         static::assertEquals('https://example.com:8800/uploads/photo.jpg', $user->getPhotoName());
     }
@@ -166,7 +177,6 @@ class JmsPostSerializeListenerTest extends \PHPUnit_Framework_TestCase
      */
     protected function generateRequestContext($https = false, $port = false)
     {
-        // Mock Request contest
         $this->requestContext = $this->getMockBuilder('Symfony\Component\Routing\RequestContext')
             ->disableOriginalConstructor()
             ->getMock();
@@ -193,46 +203,52 @@ class JmsPostSerializeListenerTest extends \PHPUnit_Framework_TestCase
             }
         }
 
-        $this->addEventListener();
+        $this->addEventListeners();
     }
 
     /**
-     * Add post serialize event listener
+     * Add post & pre serialize event listeners
      */
-    protected function addEventListener()
+    protected function addEventListeners()
     {
         $this->dispatcher = new EventDispatcher();
-        $listener = new JmsPostSerializeListener($this->requestContext, $this->annotationReader, $this->cacheManager, $this->vichStorage, [
+        $this->addEvents($this->dispatcher);
+    }
+
+    /**
+     * Add post & pre serialize event to dispatcher
+     * @param EventDispatcher $dispatcher
+     */
+    protected function addEvents(EventDispatcher $dispatcher = null)
+    {
+        $listener = new JmsSerializeListener($this->requestContext, $this->annotationReader, $this->cacheManager, $this->vichStorage, [
             'includeHost' => true,
             'vichUploaderSerialize' => true,
         ]);
 
-        $this->dispatcher->addListener(JmsEvents::POST_SERIALIZE, [$listener, 'onPostSerialize']);
+        $dispatcher->addListener(JmsEvents::PRE_SERIALIZE, [$listener, 'onPreSerialize']);
+        $dispatcher->addListener(JmsEvents::POST_SERIALIZE, [$listener, 'onPostSerialize']);
     }
-
 
     /**
      * Prepare mock of Liip cache manager
-     * @param int $propertyCount How many properties will be serialized
      */
-    protected function generateCacheManager($propertyCount = 3)
+    protected function generateCacheManager()
     {
         $resolver = static::getMock('Liip\ImagineBundle\Imagine\Cache\Resolver\ResolverInterface');
         $resolver
-            ->expects(static::exactly($propertyCount))
+            ->expects(static::any())
             ->method('isStored')
-            ->with($this->filePath, 'thumb_filter')
             ->will(static::returnValue(true))
         ;
         $resolver
-            ->expects(static::exactly($propertyCount))
+            ->expects(static::any())
             ->method('resolve')
-            ->with($this->filePath, 'thumb_filter')
             ->will(static::onConsecutiveCalls('http://a/path/to/an/image1.png', 'http://a/path/to/an/image2.png', 'http://a/path/to/an/image3.png'))
         ;
 
         $config = static::getMock('Liip\ImagineBundle\Imagine\Filter\FilterConfiguration');
-        $config->expects(static::exactly($propertyCount*2))
+        $config->expects(static::any())
             ->method('get')
             ->with('thumb_filter')
             ->will(static::returnValue(array(
@@ -256,16 +272,44 @@ class JmsPostSerializeListenerTest extends \PHPUnit_Framework_TestCase
         $this->cacheManager->addResolver('default', $resolver);
     }
 
+    /**
+     * Generate vichStorage mock
+     */
     protected function generateVichStorage()
     {
         $this->vichStorage = $this->getMockBuilder('Vich\UploaderBundle\Storage\FileSystemStorage')
             ->disableOriginalConstructor()
             ->getMock();
         $this->vichStorage->expects(static::any())
-            ->method('resolvePath')
-            ->will(static::returnValue($this->filePath));
-        $this->vichStorage->expects(static::any())
             ->method('resolveUri')
             ->will(static::returnValue('/uploads/photo.jpg'));
+    }
+
+    /**
+     * Generate JMS context
+     * @return DeserializationContext
+     */
+    protected function generateContext()
+    {
+        $namingStrategy = new SerializedNameAnnotationStrategy(new CamelCaseNamingStrategy());
+
+        $context = DeserializationContext::create();
+        $factory = new MetadataFactory(new AnnotationDriver(new AnnotationReader()));
+        $context->initialize('json', new JsonSerializationVisitor($namingStrategy), new GraphNavigator($factory, new HandlerRegistry(), new UnserializeObjectConstructor(), new EventDispatcher()), $factory);
+        $this->context = $context;
+    }
+
+    /**
+     * @param User|UserPictures $user
+     * @return ObjectEvent
+     */
+    protected function dispatchEvents($user)
+    {
+        /** @noinspection PhpParamsInspection */
+        $event = new ObjectEvent($this->context, $user, []);
+        $this->dispatcher->dispatch(JmsEvents::PRE_SERIALIZE, User::class, $this->context->getFormat(), $event);
+        $this->dispatcher->dispatch(JmsEvents::POST_SERIALIZE, User::class, $this->context->getFormat(), $event);
+
+        return $event;
     }
 }
