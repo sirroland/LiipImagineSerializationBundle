@@ -59,17 +59,17 @@ final class LiipImagineSerializableField implements Annotation
             throw new \LogicException(sprintf('Either "value" or "filter" option must be set.'));
         }
 
-        if ($this->checkArrayOption('value')) {
+        if ($this->checkOption('value', true)) {
             $this->setFilter($options['value']);
-        } elseif ($this->checkArrayOption('filter')) {
+        } elseif ($this->checkOption('filter', true)) {
             $this->setFilter($this->options['filter']);
         }
 
-        if ($this->checkStringOption('vichUploaderField')) {
+        if ($this->checkOption('vichUploaderField', false)) {
             $this->setVichUploaderField($this->options['vichUploaderField']);
         }
 
-        if ($this->checkStringOption('virtualField')) {
+        if ($this->checkOption('virtualField', false)) {
             $this->setVirtualField($this->options['virtualField']);
         }
     }
@@ -132,33 +132,18 @@ final class LiipImagineSerializableField implements Annotation
     }
 
     /**
-     * @param $optionName
+     * @param string $optionName
+     * @param bool   $canBeArray
      * @return bool
      * @throws \Exception
      */
-    private function checkStringOption($optionName)
+    private function checkOption($optionName, $canBeArray)
     {
         if (array_key_exists($optionName, $this->options)) {
-            if (!is_string($this->options[$optionName])) {
-                throw new \InvalidArgumentException(sprintf('Option "'.$optionName.'" must be a string.'));
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * @param $optionName
-     * @return bool
-     * @throws \Exception
-     */
-    private function checkArrayOption($optionName)
-    {
-        if (array_key_exists($optionName, $this->options)) {
-            if (!is_array($this->options[$optionName]) && !is_string($this->options[$optionName])) {
+            if ($canBeArray && !is_array($this->options[$optionName]) && !is_string($this->options[$optionName])) {
                 throw new \InvalidArgumentException(sprintf('Option "'.$optionName.'" must be a array or string.'));
+            } elseif (!is_string($this->options[$optionName])) {
+                throw new \InvalidArgumentException(sprintf('Option "'.$optionName.'" must be a string.'));
             }
 
             return true;

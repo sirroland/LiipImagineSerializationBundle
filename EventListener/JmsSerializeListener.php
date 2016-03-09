@@ -221,7 +221,7 @@ class JmsSerializeListener
         } else {
             $filtered = $this->cacheManager->getBrowserPath($value, $filters);
 
-            if ($result) {
+            if (count($result) !== 0) {
                 $result[$filters] = $filtered;
 
                 return $result;
