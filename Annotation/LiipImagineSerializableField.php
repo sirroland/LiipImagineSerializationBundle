@@ -59,17 +59,17 @@ final class LiipImagineSerializableField implements Annotation
             throw new \LogicException(sprintf('Either "value" or "filter" option must be set.'));
         }
 
-        if ($this->checkOption('value')) {
+        if ($this->checkArrayOption('value')) {
             $this->setFilter($options['value']);
-        } elseif ($this->checkOption('filter')) {
+        } elseif ($this->checkArrayOption('filter')) {
             $this->setFilter($this->options['filter']);
         }
 
-        if ($this->checkOption('vichUploaderField')) {
+        if ($this->checkStringOption('vichUploaderField')) {
             $this->setVichUploaderField($this->options['vichUploaderField']);
         }
 
-        if ($this->checkOption('virtualField')) {
+        if ($this->checkStringOption('virtualField')) {
             $this->setVirtualField($this->options['virtualField']);
         }
     }
@@ -136,11 +136,29 @@ final class LiipImagineSerializableField implements Annotation
      * @return bool
      * @throws \Exception
      */
-    private function checkOption($optionName)
+    private function checkStringOption($optionName)
     {
         if (array_key_exists($optionName, $this->options)) {
             if (!is_string($this->options[$optionName])) {
                 throw new \InvalidArgumentException(sprintf('Option "'.$optionName.'" must be a string.'));
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param $optionName
+     * @return bool
+     * @throws \Exception
+     */
+    private function checkArrayOption($optionName)
+    {
+        if (array_key_exists($optionName, $this->options)) {
+            if (!is_array($this->options[$optionName]) && !is_string($this->options[$optionName])) {
+                throw new \InvalidArgumentException(sprintf('Option "'.$optionName.'" must be a array or string.'));
             }
 
             return true;

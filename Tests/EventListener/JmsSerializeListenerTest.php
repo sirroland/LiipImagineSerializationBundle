@@ -112,8 +112,9 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
         $user = new User();
         $this->generateCacheManager();
         $this->generateRequestContext();
+        $this->addEventListeners();
         $serializer = SerializerBuilder::create()->configureListeners(function (EventDispatcher $dispatcher) {
-            $this->addEvents($dispatcher);
+            $this->addEvents($dispatcher, false);
         })->build();
         $result = $serializer->serialize($user, 'json');
 
@@ -130,6 +131,7 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
         $user = new User();
         $this->generateCacheManager();
         $this->generateRequestContext();
+        $this->addEventListeners();
         $this->dispatchEvents($user);
         static::assertEquals('http://a/path/to/an/image1.png', $user->getCoverUrl());
         static::assertEquals('http://a/path/to/an/image2.png', $user->getPhotoName());
@@ -144,41 +146,48 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Test serialization of proxy object
+     * Test serialization of proxy object and field with array of filters
      */
     public function testProxySerialization()
     {
         $userPictures = new UserPictures();
         $this->generateCacheManager();
         $this->generateRequestContext(false, true);
+        $this->addEventListeners();
         $data = $this->serializeObject($userPictures);
 
-        static::assertEquals('http://a/path/to/an/image1.png', $data['cover']);
+        static::assertEquals('http://a/path/to/an/image1.png', $data['cover']['big']);
+        static::assertEquals('http://a/path/to/an/image2.png', $data['cover']['small']);
         static::assertEquals('http://example.com:8000/uploads/photo.jpg', $data['photo']);
-        static::assertEquals('http://a/path/to/an/image2.png', $data['photoThumb']);
+        static::assertEquals('http://a/path/to/an/image3.png', $data['photoThumb']);
     }
 
     /**
-     * Test serialization with included http host and port in the URI
+     * Test serialization with included http host and port in the URI and include original option "true"
      */
     public function testHttpsSerialization()
     {
         $userPictures = new UserPictures();
         $this->generateCacheManager();
         $this->generateRequestContext(true, true);
-        $data = $this->serializeObject($userPictures);
+        $data = $this->serializeObject($userPictures, true);
 
         static::assertEquals('https://example.com:8800/uploads/photo.jpg', $data['photo']);
+        static::assertEquals('http://a/path/to/an/image1.png', $data['cover']['big']);
+        static::assertEquals('http://a/path/to/an/image2.png', $data['cover']['small']);
+        static::assertEquals('http://a/path/to/an/image3.png', $data['photoThumb']['thumb_filter']);
+        static::assertEquals('/uploads/photo.jpg', $data['photoThumb']['original']);
     }
 
     /**
      * @param User|UserPictures $user
+     * @param bool $includeOriginal Include original link or not
      * @return array
      */
-    protected function serializeObject($user)
+    protected function serializeObject($user, $includeOriginal = false)
     {
-        $serializer = SerializerBuilder::create()->configureListeners(function (EventDispatcher $dispatcher) {
-            $this->addEvents($dispatcher);
+        $serializer = SerializerBuilder::create()->configureListeners(function (EventDispatcher $dispatcher) use ($includeOriginal) {
+            $this->addEvents($dispatcher, $includeOriginal);
         })->build();
         $result = $serializer->serialize($user, 'json');
 
@@ -218,28 +227,29 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
                     ->willReturn(8000);
             }
         }
-
-        $this->addEventListeners();
     }
 
     /**
      * Add post & pre serialize event listeners
+     * @param bool $includeOriginal Include original link or not
      */
-    protected function addEventListeners()
+    protected function addEventListeners($includeOriginal = false)
     {
         $this->dispatcher = new EventDispatcher();
-        $this->addEvents($this->dispatcher);
+        $this->addEvents($this->dispatcher, $includeOriginal);
     }
 
     /**
      * Add post & pre serialize event to dispatcher
      * @param EventDispatcher $dispatcher
+     * @param bool $includeOriginal Include original link or not
      */
-    protected function addEvents(EventDispatcher $dispatcher)
+    protected function addEvents(EventDispatcher $dispatcher, $includeOriginal = false)
     {
         $listener = new JmsSerializeListener($this->requestContext, $this->annotationReader, $this->cacheManager, $this->vichStorage, [
             'includeHost' => true,
             'vichUploaderSerialize' => true,
+            'includeOriginal' => $includeOriginal,
         ]);
 
         $dispatcher->addListener(JmsEvents::PRE_SERIALIZE, [$listener, 'onPreSerialize']);
@@ -266,7 +276,6 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
         $config = static::getMock('Liip\ImagineBundle\Imagine\Filter\FilterConfiguration');
         $config->expects(static::any())
             ->method('get')
-            ->with('thumb_filter')
             ->will(static::returnValue(array(
                 'size' => array(180, 180),
                 'mode' => 'outbound',

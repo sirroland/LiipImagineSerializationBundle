@@ -50,7 +50,7 @@ class UserPictures implements Proxy
      * @JMS\Expose
      * @JMS\SerializedName("cover")
      *
-     * @Bukashk0zzz\LiipImagineSerializableField("thumb_filter")
+     * @Bukashk0zzz\LiipImagineSerializableField(filter={"big", "small"})
      */
     public $coverUrl;
 

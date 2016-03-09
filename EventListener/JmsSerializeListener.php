@@ -15,6 +15,7 @@ use Bukashk0zzz\LiipImagineSerializationBundle\Annotation\LiipImagineSerializabl
 use Doctrine\Common\Annotations\CachedReader;
 use Doctrine\Common\Util\ClassUtils;
 use JMS\Serializer\EventDispatcher\ObjectEvent;
+use JMS\Serializer\GenericSerializationVisitor;
 use Symfony\Component\Routing\RequestContext;
 use Doctrine\Common\Persistence\Proxy;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
@@ -165,8 +166,9 @@ class JmsSerializeListener
                         $property->setValue($object, $value);
                     }
 
-                    /** @noinspection PhpUndefinedMethodInspection */
-                    $event->getVisitor()->addData($virtualField, $this->serializeValue($liipImagineAnnotation, $object, $value));
+                    /** @var GenericSerializationVisitor $visitor */
+                    $visitor = $event->getVisitor();
+                    $visitor->addData($virtualField, $this->serializeValue($liipImagineAnnotation, $object, $value));
                 }
             }
 
@@ -179,7 +181,7 @@ class JmsSerializeListener
      * @param ObjectEvent $event Event
      * @return mixed
      */
-    protected function getObject($event)
+    protected function getObject(ObjectEvent $event)
     {
         $object = $event->getObject();
 
@@ -196,7 +198,7 @@ class JmsSerializeListener
      * @param LiipImagineSerializableField $liipImagineAnnotation
      * @param object $object Serialized object
      * @param string $value Value of field
-     * @return string
+     * @return array|string
      */
     private function serializeValue(LiipImagineSerializableField $liipImagineAnnotation, $object, $value)
     {
@@ -204,7 +206,29 @@ class JmsSerializeListener
             $value = $this->vichStorage->resolveUri($object, $vichField);
         }
 
-        return $this->cacheManager->getBrowserPath($value, $liipImagineAnnotation->getFilter());
+        $result = [];
+        if (array_key_exists('includeOriginal', $this->config) && $this->config['includeOriginal']) {
+            $result['original'] = $value;
+        }
+
+        $filters = $liipImagineAnnotation->getFilter();
+        if (is_array($filters)) {
+            foreach ($filters as $filter) {
+                $result[$filter] = $this->cacheManager->getBrowserPath($value, $filter);
+            }
+
+            return $result;
+        } else {
+            $filtered = $this->cacheManager->getBrowserPath($value, $filters);
+
+            if ($result) {
+                $result[$filters] = $filtered;
+
+                return $result;
+            }
+
+            return $filtered;
+        }
     }
 
     /**

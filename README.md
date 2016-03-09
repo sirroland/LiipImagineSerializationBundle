@@ -51,6 +51,8 @@ bukashk0zzz_liip_imagine_serialization:
     vichUploaderSerialize: false
     # Set true for generating url with host for vichUploader fields
     includeHost: false
+    # Set true for adding original field value to object
+    includeOriginal: false
 ```
 
 
@@ -68,8 +70,21 @@ At first you have to add `@Bukashk0zzz\LiipImagineSerializableClass` to the enti
 Then you have to add `@Bukashk0zzz\LiipImagineSerializableField` annotation to the field you want to serialize.
 
 Annotation `@Bukashk0zzz\LiipImagineSerializableClass` does not have any option.  
-Annotation `@Bukashk0zzz\LiipImagineSerializableField` has one required option *filter* which value should link to the LiipImagine filter .
-It can be set like this `@Bukashk0zzz\LiipImagineSerializableField("photoFile")` or `@Bukashk0zzz\LiipImagineSerializableField(filter="photoFile")`.
+Annotation `@Bukashk0zzz\LiipImagineSerializableField` has one required option *filter* which value should link to the LiipImagine filter.
+
+It can be set like this `@Bukashk0zzz\LiipImagineSerializableField("photoFile")` or `@Bukashk0zzz\LiipImagineSerializableField(filter="photoFile")`. 
+*filter* can be array of filters in this case serialized field will be also array.
+For example if you add annotation `@Bukashk0zzz\LiipImagineSerializableField(filter={"big", "small"})` for field `image`  then you get:
+
+```json
+{
+  "image": {
+             "big": {}"/uploads/users/big/5659828fa80a7.jpg",
+             "small": {}"/uploads/users/small/5659828fa80a7.jpg"
+           }
+}
+```
+
 Also there is another two not required options: 
 - `vichUploaderField` - If you use VichUploaderBundle for your uploads you should specify link to the field with `@Vich\UploadableField` annotation 
 - `virtualField` - By default serializer will override field value with link to filtered image. If you add `virtualField` option serializer will add to serialized object new field with name that you provided in this option and url to filtered image, original field in this case will be unattached.
@@ -81,7 +96,7 @@ The generated URI by default:
 ```json
 {
   "photo": "http://example.com/uploads/users/photos/5659828fa80a7.jpg",
-  "cover": "http://example.com/uploads/users/covers/456428fa8g4a8.jpg",
+  "cover": "http://example.com/uploads/users/covers/456428fa8g4a8.jpg"
 }
 ```
 
@@ -90,7 +105,7 @@ The generated URI with `includeHost` set to `false`:
 ```json
 {
   "photo": "/uploads/users/photos/5659828fa80a7.jpg",
-  "cover": "/uploads/users/covers/456428fa8g4a8.jpg",
+  "cover": "/uploads/users/covers/456428fa8g4a8.jpg"
 }
 ```
 
