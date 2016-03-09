@@ -148,14 +148,14 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
      */
     public function testProxySerialization()
     {
-        $user = new UserPictures();
+        $userPictures = new UserPictures();
         $this->generateCacheManager();
         $this->generateRequestContext(false, true);
-        $this->dispatchEvents($user);
+        $data = $this->serializeObject($userPictures);
 
-        static::assertEquals('http://a/path/to/an/image1.png', $user->getCoverUrl());
-        static::assertEquals('http://example.com:8000/uploads/photo.jpg', $user->getPhotoName());
-        static::assertEmpty($user->getImageUrl());
+        static::assertEquals('http://a/path/to/an/image1.png', $data['cover']);
+        static::assertEquals('http://example.com:8000/uploads/photo.jpg', $data['photo']);
+        static::assertEquals('http://a/path/to/an/image2.png', $data['photoThumb']);
     }
 
     /**
@@ -163,12 +163,28 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
      */
     public function testHttpsSerialization()
     {
-        $user = new UserPictures();
+        $userPictures = new UserPictures();
         $this->generateCacheManager();
         $this->generateRequestContext(true, true);
-        $this->dispatchEvents($user);
+        $data = $this->serializeObject($userPictures);
 
-        static::assertEquals('https://example.com:8800/uploads/photo.jpg', $user->getPhotoName());
+        static::assertEquals('https://example.com:8800/uploads/photo.jpg', $data['photo']);
+    }
+
+    /**
+     * @param User|UserPictures $user
+     * @return array
+     */
+    protected function serializeObject($user)
+    {
+        $serializer = SerializerBuilder::create()->configureListeners(function (EventDispatcher $dispatcher) {
+            $this->addEvents($dispatcher);
+        })->build();
+        $result = $serializer->serialize($user, 'json');
+
+        static::assertJson($result);
+
+        return json_decode($result, true);
     }
 
     /**
@@ -219,7 +235,7 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
      * Add post & pre serialize event to dispatcher
      * @param EventDispatcher $dispatcher
      */
-    protected function addEvents(EventDispatcher $dispatcher = null)
+    protected function addEvents(EventDispatcher $dispatcher)
     {
         $listener = new JmsSerializeListener($this->requestContext, $this->annotationReader, $this->cacheManager, $this->vichStorage, [
             'includeHost' => true,
