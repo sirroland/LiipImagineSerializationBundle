@@ -1,5 +1,15 @@
 # Symfony2/Symfony3 LiipImagineSerialization Bundle
 
+[![Build Status](https://img.shields.io/scrutinizer/build/g/Bukashk0zzz/LiipImagineSerializationBundle.svg?style=flat-square)](https://travis-ci.org/Bukashk0zzz/LiipImagineSerializationBundle)
+[![Code Coverage](https://img.shields.io/codecov/c/github/Bukashk0zzz/LiipImagineSerializationBundle.svg?style=flat-square)](https://codecov.io/github/Bukashk0zzz/LiipImagineSerializationBundle)
+[![Scrutinizer Code Quality](https://img.shields.io/scrutinizer/g/Bukashk0zzz/LiipImagineSerializationBundle.svg?style=flat-square)](https://scrutinizer-ci.com/g/Bukashk0zzz/LiipImagineSerializationBundle/?branch=master)
+[![Dependency Status](https://www.versioneye.com/user/projects/56dfde26df573d00352c6813/badge.svg?style=flat)](https://www.versioneye.com/user/projects/56dfde26df573d00352c6813)
+[![License](https://img.shields.io/packagist/l/Bukashk0zzz/liip-imagine-serialization-bundle.svg?style=flat-square)](https://packagist.org/packages/Bukashk0zzz/liip-imagine-serialization-bundle)
+[![Latest Stable Version](https://img.shields.io/packagist/v/Bukashk0zzz/liip-imagine-serialization-bundle.svg?style=flat-square)](https://packagist.org/packages/Bukashk0zzz/liip-imagine-serialization-bundle)
+[![Total Downloads](https://img.shields.io/packagist/dt/Bukashk0zzz/liip-imagine-serialization-bundle.svg?style=flat-square)](https://packagist.org/packages/Bukashk0zzz/liip-imagine-serialization-bundle)
+
+[![SensioLabsInsight](https://insight.sensiolabs.com/projects/01074784-ea2d-4902-8a62-53a5f743bc6f/small.png)](https://insight.sensiolabs.com/projects/01074784-ea2d-4902-8a62-53a5f743bc6f)
+[![knpbundles.com](http://knpbundles.com/Bukashk0zzz/LiipImagineSerializationBundle/badge-short)](http://knpbundles.com/Bukashk0zzz/LiipImagineSerializationBundle)
 
 About
 -----
