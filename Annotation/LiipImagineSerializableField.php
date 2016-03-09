@@ -136,11 +136,13 @@ final class LiipImagineSerializableField implements Annotation
      * @return bool
      * @throws \Exception
      */
-    private function checkOption($optionName) {
+    private function checkOption($optionName)
+    {
         if (array_key_exists($optionName, $this->options)) {
             if (!is_string($this->options[$optionName])) {
                 throw new \InvalidArgumentException(sprintf('Option "'.$optionName.'" must be a string.'));
             }
+
             return true;
         }
 
