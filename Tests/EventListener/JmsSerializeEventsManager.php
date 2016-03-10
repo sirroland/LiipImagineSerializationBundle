@@ -11,13 +11,14 @@
 
 namespace Bukashk0zzz\LiipImagineSerializationBundle\Tests\EventListener;
 
+use Bukashk0zzz\LiipImagineSerializationBundle\EventListener\JmsPostSerializeListener;
+use Bukashk0zzz\LiipImagineSerializationBundle\EventListener\JmsPreSerializeListener;
 use Bukashk0zzz\LiipImagineSerializationBundle\Tests\Fixtures\UserPictures;
 use Bukashk0zzz\LiipImagineSerializationBundle\Tests\Fixtures\User;
 use JMS\Serializer\DeserializationContext;
 use JMS\Serializer\EventDispatcher\ObjectEvent;
 use JMS\Serializer\EventDispatcher\Events as JmsEvents;
 use JMS\Serializer\EventDispatcher\EventDispatcher;
-use Bukashk0zzz\LiipImagineSerializationBundle\EventListener\JmsSerializeListener;
 use Doctrine\Common\Annotations\CachedReader;
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\Annotations\AnnotationReader;
@@ -98,9 +99,10 @@ class JmsSerializeEventsManager
             ];
         }
 
-        $listener = new JmsSerializeListener($requestContext, $this->annotationReader, $cacheManager, $vichStorage, $config);
+        $preListener = new JmsPreSerializeListener($requestContext, $this->annotationReader, $cacheManager, $vichStorage, $config);
+        $postListener = new JmsPostSerializeListener($requestContext, $this->annotationReader, $cacheManager, $vichStorage, $config);
 
-        $dispatcher->addListener(JmsEvents::PRE_SERIALIZE, [$listener, 'onPreSerialize']);
-        $dispatcher->addListener(JmsEvents::POST_SERIALIZE, [$listener, 'onPostSerialize']);
+        $dispatcher->addListener(JmsEvents::PRE_SERIALIZE, [$preListener, 'onPreSerialize']);
+        $dispatcher->addListener(JmsEvents::POST_SERIALIZE, [$postListener, 'onPostSerialize']);
     }
 }
