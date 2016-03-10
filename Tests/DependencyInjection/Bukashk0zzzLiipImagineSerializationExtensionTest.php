@@ -57,6 +57,7 @@ class Bukashk0zzzLiipImagineSerializationExtensionTest extends \PHPUnit_Framewor
         $this->container->compile();
 
         // Check that services have been loaded
-        static::assertTrue($this->container->has('bukashk0zzz_liip_imagine_serialization.listener'));
+        static::assertTrue($this->container->has('bukashk0zzz_liip_imagine_pre_serialization.listener'));
+        static::assertTrue($this->container->has('bukashk0zzz_liip_imagine_post_serialization.listener'));
     }
 }

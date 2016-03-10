@@ -1,9 +1,10 @@
 parameters:
-    bukashk0zzz_liip_imagine_serialization.listener.class: Bukashk0zzz\LiipImagineSerializationBundle\EventListener\JmsSerializeListener
+    bukashk0zzz_liip_imagine_pre_serialization.listener.class: Bukashk0zzz\LiipImagineSerializationBundle\EventListener\JmsPreSerializeListener
+    bukashk0zzz_liip_imagine_post_serialization.listener.class: Bukashk0zzz\LiipImagineSerializationBundle\EventListener\JmsPostSerializeListener
 
 services:
-    bukashk0zzz_liip_imagine_serialization.listener:
-        class: %bukashk0zzz_liip_imagine_serialization.listener.class%
+    bukashk0zzz_liip_imagine_pre_serialization.listener:
+        class: %bukashk0zzz_liip_imagine_pre_serialization.listener.class%
         arguments:
             - "@router.request_context"
             - "@annotations.cached_reader"
@@ -11,4 +12,12 @@ services:
             - "@vich_uploader.storage"
         tags:
             - { name: jms_serializer.event_listener, event: serializer.pre_serialize, method: onPreSerialize }
+    bukashk0zzz_liip_imagine_post_serialization.listener:
+        class: %bukashk0zzz_liip_imagine_post_serialization.listener.class%
+        arguments:
+            - "@router.request_context"
+            - "@annotations.cached_reader"
+            - "@liip_imagine.cache.manager"
+            - "@vich_uploader.storage"
+        tags:
             - { name: jms_serializer.event_listener, event: serializer.post_serialize, method: onPostSerialize }

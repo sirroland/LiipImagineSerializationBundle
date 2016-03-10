@@ -35,7 +35,10 @@ class Bukashk0zzzLiipImagineSerializationExtension extends Extension
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
-        $container->getDefinition('bukashk0zzz_liip_imagine_serialization.listener')
+        $container->getDefinition('bukashk0zzz_liip_imagine_pre_serialization.listener')
+            ->addArgument($config);
+
+        $container->getDefinition('bukashk0zzz_liip_imagine_post_serialization.listener')
             ->addArgument($config);
     }
 }
