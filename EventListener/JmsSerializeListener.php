@@ -109,14 +109,14 @@ class JmsSerializeListener
             $reflectionClass = ClassUtils::newReflectionClass(get_class($object));
 
             foreach ($reflectionClass->getProperties() as $property) {
-                $liipImagineAnnotation = $this->annotationReader->getPropertyAnnotation($property, LiipImagineSerializableField::class);
+                $liipAnnotation = $this->annotationReader->getPropertyAnnotation($property, LiipImagineSerializableField::class);
                 $property->setAccessible(true);
 
-                if ($liipImagineAnnotation instanceof LiipImagineSerializableField && $value = $property->getValue($object)) {
-                    $vichField = $liipImagineAnnotation->getVichUploaderField();
+                if ($liipAnnotation instanceof LiipImagineSerializableField && $value = $property->getValue($object)) {
+                    $vichField = $liipAnnotation->getVichUploaderField();
 
-                    if (!$liipImagineAnnotation->getVirtualField()) {
-                        $property->setValue($object, $this->serializeValue($liipImagineAnnotation, $object, $value));
+                    if (!$liipAnnotation->getVirtualField()) {
+                        $property->setValue($object, $this->serializeValue($liipAnnotation, $object, $value));
                     } elseif ($vichField && array_key_exists('vichUploaderSerialize', $this->config) && $this->config['vichUploaderSerialize']) {
                         $originalImageUri = $this->vichStorage->resolveUri($object, $vichField);
 
@@ -156,11 +156,11 @@ class JmsSerializeListener
             $reflectionClass = ClassUtils::newReflectionClass(get_class($object));
 
             foreach ($reflectionClass->getProperties() as $property) {
-                $liipImagineAnnotation = $this->annotationReader->getPropertyAnnotation($property, LiipImagineSerializableField::class);
+                $liipAnnotation = $this->annotationReader->getPropertyAnnotation($property, LiipImagineSerializableField::class);
                 $property->setAccessible(true);
 
-                if ($liipImagineAnnotation instanceof LiipImagineSerializableField && ($value = $property->getValue($object)) && ($virtualField = $liipImagineAnnotation->getVirtualField())) {
-                    if (array_key_exists('vichUploaderSerialize', $this->config) && $this->config['vichUploaderSerialize'] && $liipImagineAnnotation->getVichUploaderField()) {
+                if ($liipAnnotation instanceof LiipImagineSerializableField && ($value = $property->getValue($object)) && ($virtualField = $liipAnnotation->getVirtualField())) {
+                    if (array_key_exists('vichUploaderSerialize', $this->config) && $this->config['vichUploaderSerialize'] && $liipAnnotation->getVichUploaderField()) {
                         $valueArray = explode('/', $value);
                         $value = end($valueArray);
                         $property->setValue($object, $value);
@@ -168,7 +168,7 @@ class JmsSerializeListener
 
                     /** @var GenericSerializationVisitor $visitor */
                     $visitor = $event->getVisitor();
-                    $visitor->addData($virtualField, $this->serializeValue($liipImagineAnnotation, $object, $value));
+                    $visitor->addData($virtualField, $this->serializeValue($liipAnnotation, $object, $value));
                 }
             }
 
@@ -195,14 +195,14 @@ class JmsSerializeListener
     }
 
     /** @noinspection GenericObjectTypeUsageInspection
-     * @param LiipImagineSerializableField $liipImagineAnnotation
+     * @param LiipImagineSerializableField $liipAnnotation
      * @param object $object Serialized object
      * @param string $value Value of field
      * @return array|string
      */
-    private function serializeValue(LiipImagineSerializableField $liipImagineAnnotation, $object, $value)
+    private function serializeValue(LiipImagineSerializableField $liipAnnotation, $object, $value)
     {
-        if ($vichField = $liipImagineAnnotation->getVichUploaderField()) {
+        if ($vichField = $liipAnnotation->getVichUploaderField()) {
             $value = $this->vichStorage->resolveUri($object, $vichField);
         }
 
@@ -211,24 +211,23 @@ class JmsSerializeListener
             $result['original'] = $value;
         }
 
-        $filters = $liipImagineAnnotation->getFilter();
+        $filters = $liipAnnotation->getFilter();
         if (is_array($filters)) {
             foreach ($filters as $filter) {
                 $result[$filter] = $this->cacheManager->getBrowserPath($value, $filter);
             }
 
             return $result;
-        } else {
-            $filtered = $this->cacheManager->getBrowserPath($value, $filters);
-
-            if (count($result) !== 0) {
-                $result[$filters] = $filtered;
-
-                return $result;
-            }
-
-            return $filtered;
         }
+
+        $filtered = $this->cacheManager->getBrowserPath($value, $filters);
+        if (count($result) !== 0) {
+            $result[$filters] = $filtered;
+
+            return $result;
+        }
+
+        return $filtered;
     }
 
     /**
