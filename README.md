@@ -15,7 +15,7 @@ About
 -----
 
 Provides integration between [LiipImagineBundle](https://github.com/liip/LiipImagineBundle "LiipImagineBundle") and
-[JMSSerializerBundle](https://github.com/dustin10/VichUploaderBundle "JMSSerializerBundle").
+[JMSSerializerBundle](https://github.com/schmittjoh/JMSSerializerBundle "JMSSerializerBundle").
 Allows to generate full or relative URIs to entity fields mapped with `@Bukashk0zzz` and `@JMS` annotations during the serialization.
 Also bundle supports [VichUploaderBundle](https://github.com/dustin10/VichUploaderBundle "VichUploaderBundle") field type.
 
