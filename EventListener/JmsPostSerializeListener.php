@@ -24,11 +24,6 @@ use JMS\Serializer\GenericSerializationVisitor;
 class JmsPostSerializeListener extends JmsSerializeListenerAbstract
 {
     /**
-     * @var array $postSerializedObjects Post Serialized objects
-     */
-    private $postSerializedObjects = [];
-
-    /**
      * On post serialize
      *
      * @param ObjectEvent $event Event
@@ -36,11 +31,6 @@ class JmsPostSerializeListener extends JmsSerializeListenerAbstract
     public function onPostSerialize(ObjectEvent $event)
     {
         $object = $this->getObject($event);
-        $objectUid = spl_object_hash($object);
-
-        if (in_array($objectUid, $this->postSerializedObjects, true)) {
-            return;
-        }
 
         $classAnnotation = $this->annotationReader->getClassAnnotation(
             new \ReflectionClass(ClassUtils::getClass($object)),
@@ -66,8 +56,6 @@ class JmsPostSerializeListener extends JmsSerializeListenerAbstract
                     $visitor->addData($virtualField, $this->serializeValue($liipAnnotation, $object, $value));
                 }
             }
-
-            $this->postSerializedObjects[$objectUid] = $objectUid;
         }
     }
 }

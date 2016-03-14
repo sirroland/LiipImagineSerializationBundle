@@ -114,14 +114,6 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
         $this->eventManager->dispatchEvents($this->context, $user);
         static::assertEquals('http://a/path/to/an/image1.png', $user->getCoverUrl());
         static::assertEquals('http://a/path/to/an/image2.png', $user->getPhotoName());
-
-        // Serialize same object second time (check cache)
-        $this->context = (new JmsSerializeContextGenerator())->generateContext();
-        $this->eventManager->dispatchEvents($this->context, $user);
-
-        static::assertEquals('http://a/path/to/an/image1.png', $user->getCoverUrl());
-        static::assertEquals('http://a/path/to/an/image2.png', $user->getPhotoName());
-        static::assertEquals($this->filePath, $user->getImageUrl());
     }
 
     /**

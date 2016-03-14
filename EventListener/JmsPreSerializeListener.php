@@ -23,11 +23,6 @@ use JMS\Serializer\EventDispatcher\ObjectEvent;
 class JmsPreSerializeListener extends JmsSerializeListenerAbstract
 {
     /**
-     * @var array $serializedObjects Pre Serialized objects
-     */
-    private $preSerializedObjects = [];
-
-    /**
      * On pre serialize
      *
      * @param ObjectEvent $event Event
@@ -35,11 +30,6 @@ class JmsPreSerializeListener extends JmsSerializeListenerAbstract
     public function onPreSerialize(ObjectEvent $event)
     {
         $object = $this->getObject($event);
-        $objectUid = spl_object_hash($object);
-
-        if (in_array($objectUid, $this->preSerializedObjects, true)) {
-            return;
-        }
 
         $classAnnotation = $this->annotationReader->getClassAnnotation(
             new \ReflectionClass(ClassUtils::getClass($object)),
@@ -68,8 +58,6 @@ class JmsPreSerializeListener extends JmsSerializeListenerAbstract
                     }
                 }
             }
-
-            $this->preSerializedObjects[$objectUid] = $objectUid;
         }
     }
 }
