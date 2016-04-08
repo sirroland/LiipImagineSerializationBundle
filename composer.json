@@ -22,7 +22,7 @@
         "doctrine/orm": "~2.5",
         "jms/serializer-bundle": "~1.1",
         "liip/imagine-bundle": "~1.3",
-        "vich/uploader-bundle": "1.0.x-dev"
+        "vich/uploader-bundle": "~1.0"
     },
     "require-dev": {
         "phpunit/phpunit": "~5.0",
