@@ -81,6 +81,11 @@ class User
     public $userPictures;
 
     /**
+     * @ORM\OneToMany(targetEntity="Bukashk0zzz\LiipImagineSerializationBundle\Tests\Fixtures\UserPhotos", mappedBy="user")
+     */
+    public $userPhotos;
+
+    /**
      * User constructor.
      */
     public function __construct()
@@ -170,6 +175,30 @@ class User
     public function getUserPictures()
     {
         return $this->userPictures;
+    }
+
+    /**
+     * Add userPhotos
+     *
+     * @param UserPhotos $userPhotos
+     *
+     * @return $this
+     */
+    public function addUserPhotos(UserPhotos $userPhotos)
+    {
+        $this->userPhotos[] = $userPhotos;
+
+        return $this;
+    }
+
+    /**
+     * Get userPhotos
+     *
+     * @return \Doctrine\Common\Collections\Collection
+     */
+    public function getUserPhotos()
+    {
+        return $this->userPhotos;
     }
 
     /**

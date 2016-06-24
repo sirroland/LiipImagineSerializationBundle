@@ -11,6 +11,7 @@
 
 namespace Bukashk0zzz\LiipImagineSerializationBundle\Tests\EventListener;
 
+use Bukashk0zzz\LiipImagineSerializationBundle\Tests\Fixtures\UserPhotos;
 use Bukashk0zzz\LiipImagineSerializationBundle\Tests\Fixtures\UserPictures;
 use Doctrine\Common\Annotations\AnnotationRegistry;
 use JMS\Serializer\DeserializationContext;
@@ -76,8 +77,8 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
      */
     protected function tearDown()
     {
-        $this->requestContext   = null;
-        $this->eventManager   = null;
+        $this->requestContext = null;
+        $this->eventManager = null;
         $this->cacheManager = null;
         $this->vichStorage = null;
         $this->filePath = null;
@@ -155,6 +156,45 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test serialization without host in url and one filter
+     */
+    public function testSerializationWithoutHost()
+    {
+        $userPictures = new User();
+        $this->generateCacheManager('/');
+        $this->generateRequestContext(true, true);
+        $data = $this->serializeObject($userPictures, [
+            'includeHost' => false,
+            'vichUploaderSerialize' => true,
+            'includeOriginal' => false,
+        ]);
+
+        static::assertEquals('/a/path/to/an/image1.png', $data['cover']);
+        static::assertEquals('/a/path/to/an/image2.png', $data['photo']);
+    }
+
+    /**
+     * Test serialization without host in url and array of filters
+     */
+    public function testSerializationWithoutHostManyFilters()
+    {
+        $userPhotos = new UserPhotos();
+        $this->generateCacheManager('/');
+        $this->generateRequestContext(true, true);
+        $data = $this->serializeObject($userPhotos, [
+            'includeHost' => false,
+            'vichUploaderSerialize' => true,
+            'includeOriginal' => false,
+        ]);
+
+        static::assertEquals('/a/path/to/an/image1.png', $data['cover']['big']);
+        static::assertEquals('/a/path/to/an/image2.png', $data['cover']['small']);
+        static::assertEquals('/uploads/photo.jpg', $data['photo']);
+        static::assertEquals('/a/path/to/an/image3.png', $data['photoThumb']['thumb_big']);
+        static::assertEquals('/a/path/to/an/image4.png', $data['photoThumb']['thumb_small']);
+    }
+
+    /**
      * @param User|UserPictures $user
      * @param array             $config JMS serializer listner config
      * @return array
@@ -208,10 +248,12 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Prepare mock of Liip cache manager
+     *
+     * @param string $urlPrefix
      */
-    protected function generateCacheManager()
+    protected function generateCacheManager($urlPrefix = 'http://')
     {
-        $resolver = static::getMock('Liip\ImagineBundle\Imagine\Cache\Resolver\ResolverInterface');
+        $resolver = $this->createMock('Liip\ImagineBundle\Imagine\Cache\Resolver\ResolverInterface');
         $resolver
             ->expects(static::any())
             ->method('isStored')
@@ -220,10 +262,10 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
         $resolver
             ->expects(static::any())
             ->method('resolve')
-            ->will(static::onConsecutiveCalls('http://a/path/to/an/image1.png', 'http://a/path/to/an/image2.png', 'http://a/path/to/an/image3.png'))
+            ->will(static::onConsecutiveCalls($urlPrefix.'a/path/to/an/image1.png', $urlPrefix.'a/path/to/an/image2.png', $urlPrefix.'a/path/to/an/image3.png', $urlPrefix.'a/path/to/an/image4.png'))
         ;
 
-        $config = static::getMock('Liip\ImagineBundle\Imagine\Filter\FilterConfiguration');
+        $config = $this->createMock('Liip\ImagineBundle\Imagine\Filter\FilterConfiguration');
         $config->expects(static::any())
             ->method('get')
             ->will(static::returnValue(array(
@@ -233,12 +275,12 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
             )))
         ;
 
-        $router = static::getMock('Symfony\Component\Routing\RouterInterface');
+        $router = $this->createMock('Symfony\Component\Routing\RouterInterface');
         $router->expects(static::never())
             ->method('generate')
         ;
 
-        $eventDispatcher = static::getMock('Symfony\Component\EventDispatcher\EventDispatcherInterface');
+        $eventDispatcher = $this->createMock('Symfony\Component\EventDispatcher\EventDispatcherInterface');
 
         /** @noinspection PhpParamsInspection */
         $this->cacheManager = new CacheManager($config, $router, new Signer('secret'), $eventDispatcher);
