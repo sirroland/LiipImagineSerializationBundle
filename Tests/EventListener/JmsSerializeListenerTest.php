@@ -195,8 +195,9 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @param User|UserPictures $user
-     * @param array             $config JMS serializer listner config
+     * @param User|UserPictures|UserPhotos $user
+     * @param array                        $config JMS serializer listner config
+     *
      * @return array
      */
     protected function serializeObject($user, array $config = [])
