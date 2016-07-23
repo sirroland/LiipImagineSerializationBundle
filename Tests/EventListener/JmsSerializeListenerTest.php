@@ -254,7 +254,7 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
      */
     protected function generateCacheManager($urlPrefix = 'http://')
     {
-        $resolver = $this->createMock('Liip\ImagineBundle\Imagine\Cache\Resolver\ResolverInterface');
+        $resolver = $this->getMockBuilder('Liip\ImagineBundle\Imagine\Cache\Resolver\ResolverInterface')->getMock();
         $resolver
             ->expects(static::any())
             ->method('isStored')
@@ -266,7 +266,7 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
             ->will(static::onConsecutiveCalls($urlPrefix.'a/path/to/an/image1.png', $urlPrefix.'a/path/to/an/image2.png', $urlPrefix.'a/path/to/an/image3.png', $urlPrefix.'a/path/to/an/image4.png'))
         ;
 
-        $config = $this->createMock('Liip\ImagineBundle\Imagine\Filter\FilterConfiguration');
+        $config = $this->getMockBuilder('Liip\ImagineBundle\Imagine\Filter\FilterConfiguration')->getMock();
         $config->expects(static::any())
             ->method('get')
             ->will(static::returnValue(array(
@@ -276,12 +276,12 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
             )))
         ;
 
-        $router = $this->createMock('Symfony\Component\Routing\RouterInterface');
+        $router = $this->getMockBuilder('Symfony\Component\Routing\RouterInterface')->getMock();
         $router->expects(static::never())
             ->method('generate')
         ;
 
-        $eventDispatcher = $this->createMock('Symfony\Component\EventDispatcher\EventDispatcherInterface');
+        $eventDispatcher = $this->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcherInterface')->getMock();
 
         /** @noinspection PhpParamsInspection */
         $this->cacheManager = new CacheManager($config, $router, new Signer('secret'), $eventDispatcher);
