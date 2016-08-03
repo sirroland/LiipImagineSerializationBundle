@@ -53,7 +53,7 @@ bukashk0zzz_liip_imagine_serialization:
     includeHost: false
     # Set true for adding original field value to object
     includeOriginal: false
-    # Set true for adding host url to original value
+    # Set true for adding host url to original value for vichUploader fields
     includeHostForOriginal: false
 ```
 

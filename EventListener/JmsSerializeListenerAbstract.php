@@ -105,7 +105,11 @@ class JmsSerializeListenerAbstract
 
         $result = [];
         if (array_key_exists('includeOriginal', $this->config) && $this->config['includeOriginal']) {
-            if (array_key_exists('includeHostForOriginal', $this->config) && $this->config['includeHostForOriginal']) {
+            if (
+                array_key_exists('includeHostForOriginal', $this->config) &&
+                $this->config['includeHostForOriginal'] &&
+                $liipAnnotation->getVichUploaderField()
+            ) {
                 $result['original'] = $this->getHostUrl().$value;
             } else {
                 $result['original'] = $value;
