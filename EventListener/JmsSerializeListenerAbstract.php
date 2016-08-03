@@ -105,7 +105,7 @@ class JmsSerializeListenerAbstract
 
         $result = [];
         if (array_key_exists('includeOriginal', $this->config) && $this->config['includeOriginal']) {
-            if (array_key_exists('includeHost', $this->config) && $this->config['includeHost']) {
+            if (array_key_exists('includeHostForOriginal', $this->config) && $this->config['includeHostForOriginal']) {
                 $result['original'] = $this->getHostUrl().$value;
             } else {
                 $result['original'] = $value;

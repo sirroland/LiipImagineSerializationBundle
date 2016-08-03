@@ -37,6 +37,7 @@ class Configuration implements ConfigurationInterface
             ->scalarNode('includeHost')->defaultValue(true)->end()
             ->scalarNode('vichUploaderSerialize')->defaultValue(true)->end()
             ->scalarNode('includeOriginal')->defaultValue(false)->end()
+            ->scalarNode('includeHostForOriginal')->defaultValue(false)->end()
         ;
 
         return $treeBuilder;
