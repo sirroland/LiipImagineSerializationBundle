@@ -43,7 +43,7 @@ class JmsPreSerializeListener extends JmsSerializeListenerAbstract
                 $liipAnnotation = $this->annotationReader->getPropertyAnnotation($property, LiipImagineSerializableField::class);
                 $property->setAccessible(true);
 
-                if ($liipAnnotation instanceof LiipImagineSerializableField && $value = $property->getValue($object)) {
+                if ($liipAnnotation instanceof LiipImagineSerializableField && ($value = $property->getValue($object)) && !is_array($value)) {
                     $vichField = $liipAnnotation->getVichUploaderField();
 
                     if (!$liipAnnotation->getVirtualField()) {

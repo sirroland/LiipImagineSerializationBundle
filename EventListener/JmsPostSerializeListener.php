@@ -44,7 +44,7 @@ class JmsPostSerializeListener extends JmsSerializeListenerAbstract
                 $liipAnnotation = $this->annotationReader->getPropertyAnnotation($property, LiipImagineSerializableField::class);
                 $property->setAccessible(true);
 
-                if ($liipAnnotation instanceof LiipImagineSerializableField && ($value = $property->getValue($object)) && ($virtualField = $liipAnnotation->getVirtualField())) {
+                if ($liipAnnotation instanceof LiipImagineSerializableField && ($value = $property->getValue($object)) && !is_array($value) && $virtualField = $liipAnnotation->getVirtualField()) {
                     if (array_key_exists('vichUploaderSerialize', $this->config) && $this->config['vichUploaderSerialize'] && $liipAnnotation->getVichUploaderField()) {
                         $valueArray = explode('/', $value);
                         $value = end($valueArray);
