@@ -174,6 +174,46 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test serialization with host in url for original
+     */
+    public function testSerializationWithHostForOriginal()
+    {
+        $userPictures = new UserPictures();
+        $this->generateCacheManager();
+        $this->generateRequestContext(true, true);
+        $data = $this->serializeObject($userPictures, [
+            'includeHost' => false,
+            'vichUploaderSerialize' => true,
+            'includeOriginal' => true,
+            'includeHostForOriginal' => true,
+        ]);
+
+        static::assertEquals('/uploads/photo.jpg', $data['photo']);
+        static::assertFalse(strpos($data['cover']['original'], 'https://example.com:8800'));
+        static::assertEquals('https://example.com:8800/uploads/photo.jpg', $data['photoThumb']['original']);
+    }
+
+    /**
+     * Test serialization with host in url and host in url for original
+     */
+    public function testSerializationWithHostAndHostForOriginal()
+    {
+        $userPictures = new UserPictures();
+        $this->generateCacheManager();
+        $this->generateRequestContext(true, true);
+        $data = $this->serializeObject($userPictures, [
+            'includeHost' => true,
+            'vichUploaderSerialize' => true,
+            'includeOriginal' => true,
+            'includeHostForOriginal' => true,
+        ]);
+
+        static::assertEquals('https://example.com:8800/uploads/photo.jpg', $data['photo']);
+        static::assertFalse(strpos($data['cover']['original'], 'https://example.com:8800'));
+        static::assertEquals('https://example.com:8800/uploads/photo.jpg', $data['photoThumb']['original']);
+    }
+
+    /**
      * Test serialization without host in url and array of filters
      */
     public function testSerializationWithoutHostManyFilters()

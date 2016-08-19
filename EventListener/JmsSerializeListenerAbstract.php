@@ -105,11 +105,14 @@ class JmsSerializeListenerAbstract
 
         $result = [];
         if (array_key_exists('includeOriginal', $this->config) && $this->config['includeOriginal']) {
-            $result['original'] = $value;
+            $result['original'] = (array_key_exists('includeHostForOriginal', $this->config) && $this->config['includeHostForOriginal'] && $liipAnnotation->getVichUploaderField())
+                ? $this->getHostUrl().$value
+                : $value;
         }
 
         $filters = $liipAnnotation->getFilter();
         if (is_array($filters)) {
+            /** @var array $filters */
             foreach ($filters as $filter) {
                 $result[$filter] = $this->cacheManager->getBrowserPath($value, $filter);
             }
