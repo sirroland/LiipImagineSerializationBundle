@@ -87,9 +87,9 @@ For example if you add annotation `@Bukashk0zzz\LiipImagineSerializableField(fil
 }
 ```
 
-Also there is another two not required options: 
-- `vichUploaderField` - If you use VichUploaderBundle for your uploads you should specify link to the field with `@Vich\UploadableField` annotation 
-- `virtualField` - By default serializer will override field value with link to filtered image. If you add `virtualField` option serializer will add to serialized object new field with name that you provided in this option and url to filtered image, original field in this case will be unattached.
+Also there is another two options: 
+- `vichUploaderField` - If you use VichUploaderBundle for your uploads you must specify link to the field with `@Vich\UploadableField` annotation 
+- `virtualField` - By default serializer will override field value with link to filtered image. If you add `virtualField` option serializer will add to serialized object new field with name that you provided in this option and url to filtered image, original field in this case will be unattached. This option are required if you're using an array of filters.
 
 And also don't forget that to serialize image fields they also should be marked with `@JMS` annotations to be serialized.
 
