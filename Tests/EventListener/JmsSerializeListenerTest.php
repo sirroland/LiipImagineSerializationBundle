@@ -100,7 +100,7 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
 
         static::assertJson($result);
         $data = json_decode($result, true);
-        static::assertEquals('http://a/path/to/an/image3.png', $data['imageThumb']);
+        static::assertEquals('http://example.com/a/path/to/an/image3.png', $data['imageThumb']);
     }
 
     /**
@@ -113,8 +113,8 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
         $this->generateRequestContext();
         $this->eventManager->addEventListeners($this->requestContext, $this->cacheManager, $this->vichStorage);
         $this->eventManager->dispatchEvents($this->context, $user);
-        static::assertEquals('http://a/path/to/an/image1.png', $user->getCoverUrl());
-        static::assertEquals('http://a/path/to/an/image2.png', $user->getPhotoName());
+        static::assertEquals('http://example.com/a/path/to/an/image1.png', $user->getCoverUrl());
+        static::assertEquals('http://example.com/a/path/to/an/image2.png', $user->getPhotoName());
     }
 
     /**
@@ -128,10 +128,10 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
         $this->eventManager->addEventListeners($this->requestContext, $this->cacheManager, $this->vichStorage);
         $data = $this->serializeObject($userPictures);
 
-        static::assertEquals('http://a/path/to/an/image1.png', $data['cover']['big']);
-        static::assertEquals('http://a/path/to/an/image2.png', $data['cover']['small']);
+        static::assertEquals('http://example.com/a/path/to/an/image1.png', $data['cover']['big']);
+        static::assertEquals('http://example.com/a/path/to/an/image2.png', $data['cover']['small']);
         static::assertEquals('http://example.com:8000/uploads/photo.jpg', $data['photo']);
-        static::assertEquals('http://a/path/to/an/image3.png', $data['photoThumb']);
+        static::assertEquals('http://example.com/a/path/to/an/image3.png', $data['photoThumb']);
     }
 
     /**
@@ -149,9 +149,9 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
         ]);
 
         static::assertEquals('https://example.com:8800/uploads/photo.jpg', $data['photo']);
-        static::assertEquals('http://a/path/to/an/image1.png', $data['cover']['big']);
-        static::assertEquals('http://a/path/to/an/image2.png', $data['cover']['small']);
-        static::assertEquals('http://a/path/to/an/image3.png', $data['photoThumb']['thumb_filter']);
+        static::assertEquals('http://example.com/a/path/to/an/image1.png', $data['cover']['big']);
+        static::assertEquals('http://example.com/a/path/to/an/image2.png', $data['cover']['small']);
+        static::assertEquals('http://example.com/a/path/to/an/image3.png', $data['photoThumb']['thumb_filter']);
         static::assertEquals('/uploads/photo.jpg', $data['photoThumb']['original']);
     }
 
@@ -292,7 +292,7 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
      *
      * @param string $urlPrefix
      */
-    protected function generateCacheManager($urlPrefix = 'http://')
+    protected function generateCacheManager($urlPrefix = 'http://example.com/')
     {
         $resolver = $this->getMockBuilder('Liip\ImagineBundle\Imagine\Cache\Resolver\ResolverInterface')->getMock();
         $resolver
