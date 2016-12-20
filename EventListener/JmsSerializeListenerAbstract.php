@@ -115,6 +115,10 @@ class JmsSerializeListenerAbstract
             /** @var array $filters */
             foreach ($filters as $filter) {
                 $result[$filter] = $this->cacheManager->getBrowserPath($value, $filter);
+
+                if (array_key_exists('includeHost', $this->config) && !$this->config['includeHost']) {
+                    $result[$filter] = $this->stripHostFromUrl($result[$filter]);
+                }
             }
 
             return $result;
@@ -123,6 +127,10 @@ class JmsSerializeListenerAbstract
         $filtered = $this->cacheManager->getBrowserPath($value, $filters);
         if (count($result) !== 0) {
             $result[$filters] = $filtered;
+
+            if (array_key_exists('includeHost', $this->config) && !$this->config['includeHost']) {
+                $result[$filters] = $this->stripHostFromUrl($result[$filters]);
+            }
 
             return $result;
         }
@@ -146,5 +154,23 @@ class JmsSerializeListenerAbstract
         }
 
         return $url;
+    }
+
+    /**
+     * Removes host and scheme (protocol) from passed url
+     *
+     * @param $url
+     * @return string
+     */
+    private function stripHostFromUrl($url)
+    {
+        $parts = parse_url($url);
+        if (isset ($parts['path'])) {
+            if (isset ($parts['query'])) {
+                return $parts['path'] . '?' . $parts['query'];
+            } else {
+                return $parts['path'];
+            }
+        }
     }
 }
