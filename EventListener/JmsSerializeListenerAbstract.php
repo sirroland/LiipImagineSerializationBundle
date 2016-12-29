@@ -124,6 +124,7 @@ class JmsSerializeListenerAbstract
         $filtered = $this->cacheManager->getBrowserPath($value, $filters);
         if (count($result) !== 0) {
             $result[$filters] = $this->checkIncludeHostForUrl($filtered);
+
             return $result;
         }
 
