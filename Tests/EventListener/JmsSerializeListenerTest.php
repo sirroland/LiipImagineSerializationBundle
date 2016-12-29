@@ -100,7 +100,7 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
 
         static::assertJson($result);
         $data = json_decode($result, true);
-        static::assertEquals('http://a/path/to/an/image3.png', $data['imageThumb']);
+        static::assertEquals('http://example.com:8800/a/path/to/an/image3.png', $data['imageThumb']);
     }
 
     /**
@@ -113,8 +113,8 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
         $this->generateRequestContext();
         $this->eventManager->addEventListeners($this->requestContext, $this->cacheManager, $this->vichStorage);
         $this->eventManager->dispatchEvents($this->context, $user);
-        static::assertEquals('http://a/path/to/an/image1.png', $user->getCoverUrl());
-        static::assertEquals('http://a/path/to/an/image2.png', $user->getPhotoName());
+        static::assertEquals('http://example.com:8800/a/path/to/an/image1.png', $user->getCoverUrl());
+        static::assertEquals('http://example.com:8800/a/path/to/an/image2.png', $user->getPhotoName());
     }
 
     /**
@@ -128,10 +128,10 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
         $this->eventManager->addEventListeners($this->requestContext, $this->cacheManager, $this->vichStorage);
         $data = $this->serializeObject($userPictures);
 
-        static::assertEquals('http://a/path/to/an/image1.png', $data['cover']['big']);
-        static::assertEquals('http://a/path/to/an/image2.png', $data['cover']['small']);
+        static::assertEquals('http://example.com:8800/a/path/to/an/image1.png', $data['cover']['big']);
+        static::assertEquals('http://example.com:8800/a/path/to/an/image2.png', $data['cover']['small']);
         static::assertEquals('http://example.com:8000/uploads/photo.jpg', $data['photo']);
-        static::assertEquals('http://a/path/to/an/image3.png', $data['photoThumb']);
+        static::assertEquals('http://example.com:8800/a/path/to/an/image3.png', $data['photoThumb']);
     }
 
     /**
@@ -149,9 +149,9 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
         ]);
 
         static::assertEquals('https://example.com:8800/uploads/photo.jpg', $data['photo']);
-        static::assertEquals('http://a/path/to/an/image1.png', $data['cover']['big']);
-        static::assertEquals('http://a/path/to/an/image2.png', $data['cover']['small']);
-        static::assertEquals('http://a/path/to/an/image3.png', $data['photoThumb']['thumb_filter']);
+        static::assertEquals('http://example.com:8800/a/path/to/an/image1.png', $data['cover']['big']);
+        static::assertEquals('http://example.com:8800/a/path/to/an/image2.png', $data['cover']['small']);
+        static::assertEquals('http://example.com:8800/a/path/to/an/image3.png', $data['photoThumb']['thumb_filter']);
         static::assertEquals('/uploads/photo.jpg', $data['photoThumb']['original']);
     }
 
@@ -211,6 +211,68 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
         static::assertEquals('https://example.com:8800/uploads/photo.jpg', $data['photo']);
         static::assertFalse(strpos($data['cover']['original'], 'https://example.com:8800'));
         static::assertEquals('https://example.com:8800/uploads/photo.jpg', $data['photoThumb']['original']);
+    }
+
+    /**
+     * Test serialization with host in url and host in url for original and non-stored (resolve path) images
+     */
+    public function testSerializationWithHostAndHostForOriginalAndNonStoredImages()
+    {
+        $userPhotos = new UserPhotos();
+        $this->generateCacheManager('https://example.com:8800/', false);
+        $this->generateRequestContext(true, true);
+        $data = $this->serializeObject($userPhotos, [
+            'includeHost' => true,
+            'vichUploaderSerialize' => true,
+            'includeOriginal' => true,
+            'includeHostForOriginal' => true,
+        ]);
+
+        static::assertEquals('https://example.com:8800/a/path/to/an/resolve/image1.png', $data['cover']['big']);
+        static::assertEquals('https://example.com:8800/a/path/to/an/resolve/image2.png', $data['cover']['small']);
+        static::assertEquals('https://example.com:8800/uploads/photo.jpg', $data['photo']);
+        static::assertFalse(strpos($data['cover']['original'], 'https://example.com:8800'));
+        static::assertEquals('https://example.com:8800/uploads/photo.jpg', $data['photoThumb']['original']);
+    }
+
+    /**
+     * Test serialization with no host in url and no host in url for original and non-stored (resolve path) images
+     */
+    public function testSerializationWithNoHostAndNoHostForOriginalAndNonStoredImages()
+    {
+        $userPhotos = new UserPhotos();
+        $this->generateCacheManager('https://example.com:8800/', false);
+        $this->generateRequestContext(true, true);
+        $data = $this->serializeObject($userPhotos, [
+            'includeHost' => false,
+            'vichUploaderSerialize' => true,
+            'includeOriginal' => true,
+            'includeHostForOriginal' => false,
+        ]);
+
+        static::assertEquals('/a/path/to/an/resolve/image1.png', $data['cover']['big']);
+        static::assertEquals('/a/path/to/an/resolve/image2.png', $data['cover']['small']);
+        static::assertEquals('/uploads/photo.jpg', $data['photo']);
+        static::assertEquals('/uploads/photo.jpg', $data['photoThumb']['original']);
+    }
+
+    /**
+     * Test serialization with no host in url and no host in url for original and ONE non-stored (resolve path) image
+     */
+    public function testSerializationWithNoHostAndNoHostForOriginalAndOneNonStoredImage()
+    {
+        $userPictures = new UserPictures();
+        $this->generateCacheManager('https://example.com:8800/', false);
+        $this->generateRequestContext(true, true);
+        $data = $this->serializeObject($userPictures, [
+            'includeHost' => false,
+            'vichUploaderSerialize' => true,
+            'includeOriginal' => true,
+            'includeHostForOriginal' => false,
+        ]);
+
+        static::assertEquals('/uploads/photo.jpg', $data['photoThumb']['original']);
+        static::assertEquals('/a/path/to/an/resolve/image3.png', $data['photoThumb']['thumb_filter']);
     }
 
     /**
@@ -291,14 +353,15 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
      * Prepare mock of Liip cache manager
      *
      * @param string $urlPrefix
+     * @param bool $isStored
      */
-    protected function generateCacheManager($urlPrefix = 'http://')
+    protected function generateCacheManager($urlPrefix = 'http://example.com:8800/', $isStored = true)
     {
         $resolver = $this->getMockBuilder('Liip\ImagineBundle\Imagine\Cache\Resolver\ResolverInterface')->getMock();
         $resolver
             ->expects(static::any())
             ->method('isStored')
-            ->will(static::returnValue(true))
+            ->will(static::returnValue($isStored))
         ;
         $resolver
             ->expects(static::any())
@@ -317,8 +380,9 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
         ;
 
         $router = $this->getMockBuilder('Symfony\Component\Routing\RouterInterface')->getMock();
-        $router->expects(static::never())
+        $router->expects(static::any())
             ->method('generate')
+            ->will(static::onConsecutiveCalls($urlPrefix.'a/path/to/an/resolve/image1.png', $urlPrefix.'a/path/to/an/resolve/image2.png', $urlPrefix.'a/path/to/an/resolve/image3.png', $urlPrefix.'a/path/to/an/resole/image4.png'))
         ;
 
         $eventDispatcher = $this->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcherInterface')->getMock();
