@@ -115,10 +115,7 @@ class JmsSerializeListenerAbstract
             /** @var array $filters */
             foreach ($filters as $filter) {
                 $result[$filter] = $this->cacheManager->getBrowserPath($value, $filter);
-
-                if (array_key_exists('includeHost', $this->config) && !$this->config['includeHost']) {
-                    $result[$filter] = $this->stripHostFromUrl($result[$filter]);
-                }
+                $result[$filter] = $this->checkIncludeHostForUrl($result[$filter]);
             }
 
             return $result;
@@ -126,12 +123,7 @@ class JmsSerializeListenerAbstract
 
         $filtered = $this->cacheManager->getBrowserPath($value, $filters);
         if (count($result) !== 0) {
-            $result[$filters] = $filtered;
-
-            if (array_key_exists('includeHost', $this->config) && !$this->config['includeHost']) {
-                $result[$filters] = $this->stripHostFromUrl($result[$filters]);
-            }
-
+            $result[$filters] = $this->checkIncludeHostForUrl($filtered);
             return $result;
         }
 
@@ -157,6 +149,21 @@ class JmsSerializeListenerAbstract
     }
 
     /**
+     * If config demands, it will remove host and scheme (protocol) from passed url
+     *
+     * @param $url
+     * @return string
+     */
+    private function checkIncludeHostForUrl($url)
+    {
+        if (array_key_exists('includeHost', $this->config) && !$this->config['includeHost']) {
+            $url = $this->stripHostFromUrl($url);
+        }
+
+        return $url;
+    }
+
+    /**
      * Removes host and scheme (protocol) from passed url
      *
      * @param $url
@@ -165,9 +172,9 @@ class JmsSerializeListenerAbstract
     private function stripHostFromUrl($url)
     {
         $parts = parse_url($url);
-        if (isset ($parts['path'])) {
-            if (isset ($parts['query'])) {
-                return $parts['path'] . '?' . $parts['query'];
+        if (isset($parts['path'])) {
+            if (array_key_exists('query', $parts)) {
+                return $parts['path'].'?'.$parts['query'];
             } else {
                 return $parts['path'];
             }
