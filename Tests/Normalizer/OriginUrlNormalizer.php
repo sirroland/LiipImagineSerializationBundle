@@ -21,7 +21,8 @@ class OriginUrlNormalizer implements UrlNormalizerInterface
     /**
      * {@inheritdoc}
      */
-    public function normalize($url){
+    public function normalize($url)
+    {
         return str_replace('photo', 'newPhoto', $url);
     }
 }

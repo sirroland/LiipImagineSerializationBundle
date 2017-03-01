@@ -162,7 +162,8 @@ class JmsSerializeListenerAbstract
     protected function normalizeUrl($url, $normalizer)
     {
         if (array_key_exists($normalizer, $this->config) && $this->config[$normalizer]) {
-            $normalizer = new $this->config[$normalizer]();
+            $normalizerClassName = $this->config[$normalizer];
+            $normalizer = new $normalizerClassName();
             if ($normalizer instanceof UrlNormalizerInterface) {
                 $url = $normalizer->normalize($url);
             }

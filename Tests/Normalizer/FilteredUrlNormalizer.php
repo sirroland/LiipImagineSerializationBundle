@@ -21,7 +21,8 @@ class FilteredUrlNormalizer implements UrlNormalizerInterface
     /**
      * {@inheritdoc}
      */
-    public function normalize($url){
+    public function normalize($url)
+    {
         return str_replace('example.com', 'img.example.com', $url);
     }
 }

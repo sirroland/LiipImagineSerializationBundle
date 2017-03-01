@@ -54,7 +54,7 @@ class JmsPostSerializeListener extends JmsSerializeListenerAbstract
 
                     /** @var GenericSerializationVisitor $visitor */
                     $visitor = $event->getVisitor();
-                    $visitor->addData($virtualField, $this->serializeValue($liipAnnotation, $object, $value));
+                    $visitor->setData($virtualField, $this->serializeValue($liipAnnotation, $object, $value));
                 }
             }
         }
