@@ -92,6 +92,7 @@ class UserPictures implements Proxy
      */
     private $status = false;
 
+    // @codingStandardsIgnoreStart
     /**
      * @inheritdoc
      */
@@ -110,6 +111,7 @@ class UserPictures implements Proxy
     {
         return $this->status;
     }
+    // @codingStandardsIgnoreEnd
 
     /**
      * To string

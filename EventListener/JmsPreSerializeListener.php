@@ -26,6 +26,7 @@ class JmsPreSerializeListener extends JmsSerializeListenerAbstract
      * On pre serialize
      *
      * @param ObjectEvent $event Event
+     * @throws \InvalidArgumentException
      */
     public function onPreSerialize(ObjectEvent $event)
     {
@@ -54,7 +55,7 @@ class JmsPreSerializeListener extends JmsSerializeListenerAbstract
                         if (array_key_exists('includeHost', $this->config) && $this->config['includeHost']) {
                             $originalImageUri = $this->getHostUrl().$originalImageUri;
                         }
-                        $property->setValue($object, $originalImageUri);
+                        $property->setValue($object, $this->normalizeUrl($originalImageUri, 'originUrlNormalizer'));
                     }
                 }
             }

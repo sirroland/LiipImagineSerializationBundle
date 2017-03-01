@@ -24,7 +24,7 @@ class Configuration implements ConfigurationInterface
     /**
      * Generates the configuration tree.
      *
-     * @return \Symfony\Component\Config\Definition\NodeInterface
+     * @return \Symfony\Component\Config\Definition\Builder\NodeParentInterface
      * @throws \Exception
      */
     public function getConfigTreeBuilder()
@@ -38,6 +38,8 @@ class Configuration implements ConfigurationInterface
             ->scalarNode('vichUploaderSerialize')->defaultValue(true)->end()
             ->scalarNode('includeOriginal')->defaultValue(false)->end()
             ->scalarNode('includeHostForOriginal')->defaultValue(false)->end()
+            ->scalarNode('originUrlNormalizer')->defaultValue(null)->end()
+            ->scalarNode('filteredUrlNormalizer')->defaultValue(null)->end()
         ;
 
         return $treeBuilder;

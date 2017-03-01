@@ -27,6 +27,7 @@ class JmsPostSerializeListener extends JmsSerializeListenerAbstract
      * On post serialize
      *
      * @param ObjectEvent $event Event
+     * @throws \InvalidArgumentException
      */
     public function onPostSerialize(ObjectEvent $event)
     {

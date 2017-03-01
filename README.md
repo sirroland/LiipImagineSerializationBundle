@@ -26,7 +26,7 @@ Add this to your `composer.json` file:
 
 ```json
 "require": {
-	"bukashk0zzz/liip-imagine-serialization-bundle": "dev-master",
+	"bukashk0zzz/liip-imagine-serialization-bundle": "^1.1"
 }
 ```
 
@@ -55,6 +55,10 @@ bukashk0zzz_liip_imagine_serialization:
     includeOriginal: false
     # Set true for adding host url to original value for vichUploader fields
     includeHostForOriginal: false
+    # You can pass there your UrlNormalizer class that implements UrlNormalizerInterface
+    originUrlNormalizer: null
+    # You can pass there your UrlNormalizer class that implements UrlNormalizerInterface
+    filteredUrlNormalizer: null
 ```
 
 
@@ -81,8 +85,8 @@ For example if you add annotation `@Bukashk0zzz\LiipImagineSerializableField(fil
 ```json
 {
   "image": {
-             "big": {}"/uploads/users/big/5659828fa80a7.jpg",
-             "small": {}"/uploads/users/small/5659828fa80a7.jpg"
+             "big": "/uploads/users/big/5659828fa80a7.jpg",
+             "small": "/uploads/users/small/5659828fa80a7.jpg"
            }
 }
 ```
@@ -91,7 +95,7 @@ Also there is another two options:
 - `vichUploaderField` - If you use VichUploaderBundle for your uploads you must specify link to the field with `@Vich\UploadableField` annotation 
 - `virtualField` - By default serializer will override field value with link to filtered image. If you add `virtualField` option serializer will add to serialized object new field with name that you provided in this option and url to filtered image, original field in this case will be unattached. This option are required if you're using an array of filters.
 
-And also don't forget that to serialize image fields they also should be marked with `@JMS` annotations to be serialized.
+Don't forget that to serialize image fields they also should be marked with `@JMS` annotations to be serialized.
 
 The generated URI by default:
 
@@ -111,6 +115,41 @@ The generated URI with `includeHost` set to `false`:
 }
 ```
 
+If you need to change url before passing it to LiipImagine, for example you need to swap origin name, you can use originUrlNormalizer option in bundle config.
+```yaml
+bukashk0zzz_liip_imagine_serialization:
+    originUrlNormalizer: AppBundle\Normalizer\UrlNormalizer
+```
+
+If you need to change url after LiipImagine processing, for example you need to swap origin domain, you can use filteredUrlNormalizer option in bundle config.
+```yaml
+bukashk0zzz_liip_imagine_serialization:
+    filteredUrlNormalizer: AppBundle\Normalizer\UrlNormalizer
+```
+
+UrlNormalizer class must implement [UrlNormalizerInterface](https://github.com/Bukashk0zzz/LiipImagineSerializationBundle/blob/master/Normalizer/UrlNormalizerInterface.php)
+
+```php
+<?php
+
+namespace AppBundle\Normalizer;
+
+use Bukashk0zzz\LiipImagineSerializationBundle\Normalizer\UrlNormalizerInterface;
+
+/**
+ * Url normalizer
+ */
+class UrlNormalizer implements UrlNormalizerInterface
+{    
+    /**
+    * {@inheritdoc} 
+    */
+    public function normalize($url){
+        return str_replace('photo.jpg', 'my_photo.jpg', $url);
+    }
+}
+```
+
 Example
 -------
 
@@ -123,6 +162,7 @@ use Doctrine\ORM\Mapping as ORM;
 use JMS\Serializer\Annotation as JMS;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
 use Bukashk0zzz\LiipImagineSerializationBundle\Annotation as Bukashk0zzz;
+use Symfony\Component\HttpFoundation\File\File;
 
 /**
  * User Entity

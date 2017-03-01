@@ -11,6 +11,7 @@
 namespace Bukashk0zzz\LiipImagineSerializationBundle\EventListener;
 
 use Bukashk0zzz\LiipImagineSerializationBundle\Annotation\LiipImagineSerializableField;
+use Bukashk0zzz\LiipImagineSerializationBundle\Normalizer\UrlNormalizerInterface;
 use Doctrine\Common\Annotations\CachedReader;
 use JMS\Serializer\EventDispatcher\ObjectEvent;
 use Symfony\Component\Routing\RequestContext;
@@ -50,8 +51,7 @@ class JmsSerializeListenerAbstract
      */
     protected $config;
 
-    /** @noinspection MoreThanThreeArgumentsInspection
-     *
+    /**
      * JmsSerializeListenerAbstract constructor.
      *
      * @param RequestContext   $requestContext
@@ -91,11 +91,14 @@ class JmsSerializeListenerAbstract
         return $object;
     }
 
-    /** @noinspection GenericObjectTypeUsageInspection
+    /**
      * @param LiipImagineSerializableField $liipAnnotation
      * @param object $object Serialized object
      * @param string $value Value of field
+     *
      * @return array|string
+     *
+     * @throws \InvalidArgumentException
      */
     protected function serializeValue(LiipImagineSerializableField $liipAnnotation, $object, $value)
     {
@@ -104,6 +107,7 @@ class JmsSerializeListenerAbstract
         }
 
         $result = [];
+        $value = $this->normalizeUrl($value, 'originUrlNormalizer');
         if (array_key_exists('includeOriginal', $this->config) && $this->config['includeOriginal']) {
             $result['original'] = (array_key_exists('includeHostForOriginal', $this->config) && $this->config['includeHostForOriginal'] && $liipAnnotation->getVichUploaderField())
                 ? $this->getHostUrl().$value
@@ -114,8 +118,7 @@ class JmsSerializeListenerAbstract
         if (is_array($filters)) {
             /** @var array $filters */
             foreach ($filters as $filter) {
-                $result[$filter] = $this->cacheManager->getBrowserPath($value, $filter);
-                $result[$filter] = $this->checkIncludeHostForUrl($result[$filter]);
+                $result[$filter] = $this->prepareFilteredUrl($this->cacheManager->getBrowserPath($value, $filter));
             }
 
             return $result;
@@ -123,7 +126,7 @@ class JmsSerializeListenerAbstract
 
         $filtered = $this->cacheManager->getBrowserPath($value, $filters);
         if (count($result) !== 0) {
-            $result[$filters] = $this->checkIncludeHostForUrl($filtered);
+            $result[$filters] = $this->prepareFilteredUrl($filtered);
 
             return $result;
         }
@@ -150,18 +153,38 @@ class JmsSerializeListenerAbstract
     }
 
     /**
+     * Normalize url if needed
+     *
+     * @param string $url
+     * @param string $normalizer
+     * @return string
+     */
+    protected function normalizeUrl($url, $normalizer)
+    {
+        if (array_key_exists($normalizer, $this->config) && $this->config[$normalizer]) {
+            $normalizer = new $this->config[$normalizer]();
+            if ($normalizer instanceof UrlNormalizerInterface) {
+                $url = $normalizer->normalize($url);
+            }
+        }
+
+        return $url;
+    }
+
+    /**
      * If config demands, it will remove host and scheme (protocol) from passed url
      *
      * @param $url
      * @return string
+     * @throws \InvalidArgumentException
      */
-    private function checkIncludeHostForUrl($url)
+    private function prepareFilteredUrl($url)
     {
         if (array_key_exists('includeHost', $this->config) && !$this->config['includeHost']) {
             $url = $this->stripHostFromUrl($url);
         }
 
-        return $url;
+        return $this->normalizeUrl($url, 'filteredUrlNormalizer');
     }
 
     /**
@@ -169,16 +192,15 @@ class JmsSerializeListenerAbstract
      *
      * @param $url
      * @return string
+     * @throws \InvalidArgumentException
      */
     private function stripHostFromUrl($url)
     {
         $parts = parse_url($url);
-        if (isset($parts['path'])) {
-            if (array_key_exists('query', $parts)) {
-                return $parts['path'].'?'.$parts['query'];
-            } else {
-                return $parts['path'];
-            }
+        if ($parts !== false && array_key_exists('path', $parts)) {
+            return array_key_exists('query', $parts) ? $parts['path'].'?'.$parts['query'] : $parts['path'];
         }
+
+        throw new \InvalidArgumentException('Can\'t strip host from url, because can\'t parse url.');
     }
 }

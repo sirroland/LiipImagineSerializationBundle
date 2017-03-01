@@ -13,6 +13,8 @@ namespace Bukashk0zzz\LiipImagineSerializationBundle\Tests\EventListener;
 
 use Bukashk0zzz\LiipImagineSerializationBundle\Tests\Fixtures\UserPhotos;
 use Bukashk0zzz\LiipImagineSerializationBundle\Tests\Fixtures\UserPictures;
+use Bukashk0zzz\LiipImagineSerializationBundle\Tests\Normalizer\FilteredUrlNormalizer;
+use Bukashk0zzz\LiipImagineSerializationBundle\Tests\Normalizer\OriginUrlNormalizer;
 use Doctrine\Common\Annotations\AnnotationRegistry;
 use JMS\Serializer\DeserializationContext;
 use JMS\Serializer\SerializerBuilder;
@@ -132,6 +134,59 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
         static::assertEquals('http://example.com:8800/a/path/to/an/image2.png', $data['cover']['small']);
         static::assertEquals('http://example.com:8000/uploads/photo.jpg', $data['photo']);
         static::assertEquals('http://example.com:8800/a/path/to/an/image3.png', $data['photoThumb']);
+    }
+
+    /**
+     * Test serialization with origin normalizer
+     */
+    public function testSerializationWithOriginNormalizer()
+    {
+        $userPictures = new UserPictures();
+        $this->generateCacheManager();
+        $this->generateRequestContext();
+        $data = $this->serializeObject($userPictures, [
+            'includeHost' => false,
+            'vichUploaderSerialize' => true,
+            'includeOriginal' => true,
+            'originUrlNormalizer' => OriginUrlNormalizer::class,
+        ]);
+
+        static::assertEquals('/uploads/newPhoto.jpg', $data['photoThumb']['original']);
+        static::assertEquals('/uploads/newPhoto.jpg', $data['photo']);
+    }
+
+    /**
+     * Test serialization with filtered normalizer
+     */
+    public function testSerializationWithFilteredNormalizer()
+    {
+        $userPictures = new UserPictures();
+        $this->generateCacheManager();
+        $this->generateRequestContext();
+        $data = $this->serializeObject($userPictures, [
+            'includeHost' => true,
+            'vichUploaderSerialize' => true,
+            'includeOriginal' => true,
+            'filteredUrlNormalizer' => FilteredUrlNormalizer::class,
+        ]);
+
+        static::assertEquals('http://img.example.com:8800/a/path/to/an/image3.png', $data['photoThumb']['thumb_filter']);
+        static::assertEquals('http://img.example.com:8800/a/path/to/an/image1.png', $data['cover']['big']);
+    }
+
+    /**
+     * Test serialization with url parse exception
+     *
+     * @expectedException \InvalidArgumentException
+     */
+    public function testSerializationWithUrlParseException()
+    {
+        $userPictures = new UserPictures();
+        $this->generateCacheManager('http://blah.com:abcdef');
+        $this->generateRequestContext();
+        $this->serializeObject($userPictures, [
+            'includeHost' => false,
+        ]);
     }
 
     /**
