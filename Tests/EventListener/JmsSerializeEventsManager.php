@@ -13,6 +13,7 @@ namespace Bukashk0zzz\LiipImagineSerializationBundle\Tests\EventListener;
 
 use Bukashk0zzz\LiipImagineSerializationBundle\EventListener\JmsPostSerializeListener;
 use Bukashk0zzz\LiipImagineSerializationBundle\EventListener\JmsPreSerializeListener;
+use Bukashk0zzz\LiipImagineSerializationBundle\Tests\EventSubscriber\Bukashk0zzzSerializationEventSubscriber;
 use Bukashk0zzz\LiipImagineSerializationBundle\Tests\Fixtures\UserPictures;
 use Bukashk0zzz\LiipImagineSerializationBundle\Tests\Fixtures\User;
 use JMS\Serializer\DeserializationContext;
@@ -44,11 +45,17 @@ class JmsSerializeEventsManager
     private $annotationReader;
 
     /**
+     * @var \Symfony\Component\EventDispatcher\EventDispatcher
+     */
+    private $symfonyEventDispatcher;
+
+    /**
      * JmsSerializeEventsManager constructor.
      */
     public function __construct()
     {
         $this->annotationReader = new CachedReader(new AnnotationReader(), new ArrayCache());
+        $this->symfonyEventDispatcher = new \Symfony\Component\EventDispatcher\EventDispatcher();
     }
 
     /**
@@ -99,10 +106,18 @@ class JmsSerializeEventsManager
             ];
         }
 
-        $preListener = new JmsPreSerializeListener($requestContext, $this->annotationReader, $cacheManager, $vichStorage, $config);
-        $postListener = new JmsPostSerializeListener($requestContext, $this->annotationReader, $cacheManager, $vichStorage, $config);
+        $preListener = new JmsPreSerializeListener($requestContext, $this->annotationReader, $cacheManager, $vichStorage, $this->symfonyEventDispatcher, $config);
+        $postListener = new JmsPostSerializeListener($requestContext, $this->annotationReader, $cacheManager, $vichStorage, $this->symfonyEventDispatcher, $config);
 
         $dispatcher->addListener(JmsEvents::PRE_SERIALIZE, [$preListener, 'onPreSerialize']);
         $dispatcher->addListener(JmsEvents::POST_SERIALIZE, [$postListener, 'onPostSerialize']);
+    }
+
+    /**
+     * Add normalizer subscriber
+     */
+    public function addNormalizerSubscriber()
+    {
+        $this->symfonyEventDispatcher->addSubscriber(new Bukashk0zzzSerializationEventSubscriber());
     }
 }

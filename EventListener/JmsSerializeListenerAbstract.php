@@ -11,9 +11,11 @@
 namespace Bukashk0zzz\LiipImagineSerializationBundle\EventListener;
 
 use Bukashk0zzz\LiipImagineSerializationBundle\Annotation\LiipImagineSerializableField;
+use Bukashk0zzz\LiipImagineSerializationBundle\Event\UrlNormalizerEvent;
 use Bukashk0zzz\LiipImagineSerializationBundle\Normalizer\UrlNormalizerInterface;
 use Doctrine\Common\Annotations\CachedReader;
 use JMS\Serializer\EventDispatcher\ObjectEvent;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Routing\RequestContext;
 use Doctrine\Common\Persistence\Proxy;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
@@ -47,6 +49,11 @@ class JmsSerializeListenerAbstract
     protected $vichStorage;
 
     /**
+     * @var EventDispatcherInterface $eventDispatcher
+     */
+    protected $eventDispatcher;
+
+    /**
      * @var array $config Bundle config
      */
     protected $config;
@@ -54,23 +61,26 @@ class JmsSerializeListenerAbstract
     /**
      * JmsSerializeListenerAbstract constructor.
      *
-     * @param RequestContext   $requestContext
-     * @param CachedReader     $annotationReader
-     * @param CacheManager     $cacheManager
-     * @param StorageInterface $vichStorage
-     * @param array            $config
+     * @param RequestContext           $requestContext
+     * @param CachedReader             $annotationReader
+     * @param CacheManager             $cacheManager
+     * @param StorageInterface         $vichStorage
+     * @param EventDispatcherInterface $eventDispatcher
+     * @param array                    $config
      */
     public function __construct(
         RequestContext $requestContext,
         CachedReader $annotationReader,
         CacheManager $cacheManager,
         StorageInterface $vichStorage,
+        EventDispatcherInterface $eventDispatcher,
         array $config
     ) {
         $this->requestContext = $requestContext;
         $this->annotationReader = $annotationReader;
         $this->cacheManager = $cacheManager;
         $this->vichStorage = $vichStorage;
+        $this->eventDispatcher = $eventDispatcher;
         $this->config = $config;
     }
 
@@ -107,7 +117,7 @@ class JmsSerializeListenerAbstract
         }
 
         $result = [];
-        $value = $this->normalizeUrl($value, 'originUrlNormalizer');
+        $value = $this->normalizeUrl($value, UrlNormalizerInterface::TYPE_ORIGIN);
         if (array_key_exists('includeOriginal', $this->config) && $this->config['includeOriginal']) {
             $result['original'] = (array_key_exists('includeHostForOriginal', $this->config) && $this->config['includeHostForOriginal'] && $liipAnnotation->getVichUploaderField())
                 ? $this->getHostUrl().$value
@@ -161,6 +171,8 @@ class JmsSerializeListenerAbstract
      */
     protected function normalizeUrl($url, $normalizer)
     {
+        $url = $this->addPreNormalizeUrlEvent($normalizer, $url);
+
         if (array_key_exists($normalizer, $this->config) && $this->config[$normalizer]) {
             $normalizerClassName = $this->config[$normalizer];
             $normalizer = new $normalizerClassName();
@@ -185,7 +197,7 @@ class JmsSerializeListenerAbstract
             $url = $this->stripHostFromUrl($url);
         }
 
-        return $this->normalizeUrl($url, 'filteredUrlNormalizer');
+        return $this->normalizeUrl($url, UrlNormalizerInterface::TYPE_FILTERED);
     }
 
     /**
@@ -203,5 +215,24 @@ class JmsSerializeListenerAbstract
         }
 
         throw new \InvalidArgumentException('Can\'t strip host from url, because can\'t parse url.');
+    }
+
+    /**
+     * @param string $type
+     * @param string $url
+     *
+     * @return string
+     */
+    private function addPreNormalizeUrlEvent($type, $url)
+    {
+        /** @var UrlNormalizerEvent $event */
+        $event = $this->eventDispatcher->dispatch(
+            $type === UrlNormalizerInterface::TYPE_ORIGIN
+                ? UrlNormalizerEvent::ORIGIN
+                : UrlNormalizerEvent::FILTERED,
+            new UrlNormalizerEvent($url)
+        );
+
+        return $event->getUrl();
     }
 }

@@ -9,6 +9,9 @@ namespace Bukashk0zzz\LiipImagineSerializationBundle\Normalizer;
  */
 interface UrlNormalizerInterface
 {
+    const TYPE_ORIGIN = 'originUrlNormalizer';
+    const TYPE_FILTERED = 'filteredUrlNormalizer';
+
     /**
      * @param string $url
      * @return string

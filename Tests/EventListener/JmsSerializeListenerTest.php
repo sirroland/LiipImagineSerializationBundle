@@ -175,6 +175,27 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test serialization with event subscriber
+     */
+    public function testSerializationWithEventSubscriber()
+    {
+        $userPictures = new UserPictures();
+        $this->generateCacheManager();
+        $this->generateRequestContext();
+        $this->eventManager->addNormalizerSubscriber();
+        $data = $this->serializeObject($userPictures, [
+            'includeHost' => true,
+            'vichUploaderSerialize' => true,
+            'includeOriginal' => true,
+        ]);
+
+        static::assertEquals('http://img.example.com:8800/a/path/to/an/image3.png', $data['photoThumb']['thumb_filter']);
+        static::assertEquals('http://img.example.com:8800/a/path/to/an/image1.png', $data['cover']['big']);
+        static::assertEquals('/uploads/newPhoto.jpg', $data['photoThumb']['original']);
+        static::assertEquals('http://example.com/uploads/newPhoto.jpg', $data['photo']);
+    }
+
+    /**
      * Test serialization with url parse exception
      *
      * @expectedException \InvalidArgumentException

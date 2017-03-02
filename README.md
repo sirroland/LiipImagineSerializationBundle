@@ -150,6 +150,68 @@ class UrlNormalizer implements UrlNormalizerInterface
 }
 ```
 
+Events
+-------
+There are two events:
+- bukashk0zzz_liip_imagine.event_pre_origin_normalize // Dispatch before origin url normalization
+- bukashk0zzz_liip_imagine.event_pre_filtered_normalize // Dispatch before filtered url normalization
+
+**Example subscriber:**
+```yaml
+services:
+    app.liip_imagine_serialization_subscriber:
+        class: AppBundle\EventSubscriber\LiipImagineSerializationEventSubscriber
+        tags:
+            - { name: bukashk0zzz_liip_imagine_subscriber }
+```
+
+```php
+<?php
+
+namespace AppBundle\EventSubscriber;
+
+use Bukashk0zzz\LiipImagineSerializationBundle\Event\UrlNormalizerEvent;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+
+/**
+ * LiipImagineSerializationEventSubscriber
+ */
+class LiipImagineSerializationEventSubscriber implements EventSubscriberInterface
+{
+    /**
+     * @return array
+     */
+    public static function getSubscribedEvents()
+    {
+        return [
+            UrlNormalizerEvent::ORIGIN => [
+                ['normalizeOrigin', 10],
+            ],
+            UrlNormalizerEvent::FILTERED => [
+                ['normalizeFiltered', 10],
+            ],
+        ];
+    }
+
+    /**
+     * @param UrlNormalizerEvent $event
+     */
+    public function normalizeOrigin(UrlNormalizerEvent $event)
+    {
+        $event->setUrl(str_replace('photo', 'newPhoto', $event->getUrl()));
+    }
+
+    /**
+     * @param UrlNormalizerEvent $event
+     */
+    public function normalizeFiltered(UrlNormalizerEvent $event)
+    {
+        $event->setUrl(str_replace('example.com', 'img.example.com', $event->getUrl()));
+    }
+}
+```
+
+
 Example
 -------
 

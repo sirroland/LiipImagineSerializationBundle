@@ -12,6 +12,7 @@ namespace Bukashk0zzz\LiipImagineSerializationBundle\EventListener;
 
 use Bukashk0zzz\LiipImagineSerializationBundle\Annotation\LiipImagineSerializableClass;
 use Bukashk0zzz\LiipImagineSerializationBundle\Annotation\LiipImagineSerializableField;
+use Bukashk0zzz\LiipImagineSerializationBundle\Normalizer\UrlNormalizerInterface;
 use Doctrine\Common\Util\ClassUtils;
 use JMS\Serializer\EventDispatcher\ObjectEvent;
 
@@ -55,7 +56,7 @@ class JmsPreSerializeListener extends JmsSerializeListenerAbstract
                         if (array_key_exists('includeHost', $this->config) && $this->config['includeHost']) {
                             $originalImageUri = $this->getHostUrl().$originalImageUri;
                         }
-                        $property->setValue($object, $this->normalizeUrl($originalImageUri, 'originUrlNormalizer'));
+                        $property->setValue($object, $this->normalizeUrl($originalImageUri, UrlNormalizerInterface::TYPE_ORIGIN));
                     }
                 }
             }

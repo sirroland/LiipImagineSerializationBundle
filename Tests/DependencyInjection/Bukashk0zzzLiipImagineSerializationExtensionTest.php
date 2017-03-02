@@ -51,6 +51,7 @@ class Bukashk0zzzLiipImagineSerializationExtensionTest extends \PHPUnit_Framewor
         $this->container->set('annotations.cached_reader', new \stdClass());
         $this->container->set('liip_imagine.cache.manager', new \stdClass());
         $this->container->set('vich_uploader.storage', new \stdClass());
+        $this->container->set('event_dispatcher', new \stdClass());
 
         $this->container->prependExtensionConfig($this->extension->getAlias(), ['includeHost' => true]);
         $this->container->loadFromExtension($this->extension->getAlias());
