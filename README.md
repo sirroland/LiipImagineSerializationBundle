@@ -160,7 +160,7 @@ There are two events:
 ```yaml
 services:
     app.liip_imagine_serialization_subscriber:
-        class: AppBundle\EventSubscriber\LiipImagineSerializationEventSubscriber
+        class: AppBundle\Subscribers\LiipImagineSerializationEventSubscriber
         tags:
             - { name: bukashk0zzz_liip_imagine_subscriber }
 ```
@@ -168,7 +168,7 @@ services:
 ```php
 <?php
 
-namespace AppBundle\EventSubscriber;
+namespace AppBundle\Subscribers;
 
 use Bukashk0zzz\LiipImagineSerializationBundle\Event\UrlNormalizerEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
