@@ -17,16 +17,24 @@ use Doctrine\Common\Util\ClassUtils;
 use JMS\Serializer\EventDispatcher\ObjectEvent;
 
 /**
- * JmsPreSerializeListener
+ * JmsPreSerializeListener.
  *
  * @author Denis Golubovskiy <bukashk0zzz@gmail.com>
  */
 class JmsPreSerializeListener extends JmsSerializeListenerAbstract
 {
     /**
-     * On pre serialize
+     * Cache attributes already processed (in case of collection serialization).
+     *
+     * @var array
+     */
+    private $cache = [];
+
+    /**
+     * On pre serialize.
      *
      * @param ObjectEvent $event Event
+     *
      * @throws \InvalidArgumentException
      */
     public function onPreSerialize(ObjectEvent $event)
@@ -44,13 +52,23 @@ class JmsPreSerializeListener extends JmsSerializeListenerAbstract
             foreach ($reflectionClass->getProperties() as $property) {
                 $liipAnnotation = $this->annotationReader->getPropertyAnnotation($property, LiipImagineSerializableField::class);
                 $property->setAccessible(true);
-
                 if ($liipAnnotation instanceof LiipImagineSerializableField && ($value = $property->getValue($object)) && !is_array($value)) {
                     $vichField = $liipAnnotation->getVichUploaderField();
 
+                    $uriComponents = explode($value, '/');
+                    $cacheKey      = $vichField.array_pop($uriComponents);
+
+                    if (in_array($cacheKey, $this->cache)) {
+                        continue;
+                    }
+
                     if (!$liipAnnotation->getVirtualField()) {
+                        $this->cache[] = $cacheKey;
+
                         $property->setValue($object, $this->serializeValue($liipAnnotation, $object, $value));
                     } elseif ($vichField && array_key_exists('vichUploaderSerialize', $this->config) && $this->config['vichUploaderSerialize']) {
+                        $this->cache[] = $cacheKey;
+
                         $originalImageUri = $this->vichStorage->resolveUri($object, $vichField);
 
                         if (array_key_exists('includeHost', $this->config) && $this->config['includeHost']) {
