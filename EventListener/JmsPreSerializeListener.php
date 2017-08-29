@@ -15,6 +15,7 @@ use Bukashk0zzz\LiipImagineSerializationBundle\Annotation\LiipImagineSerializabl
 use Bukashk0zzz\LiipImagineSerializationBundle\Normalizer\UrlNormalizerInterface;
 use Doctrine\Common\Util\ClassUtils;
 use JMS\Serializer\EventDispatcher\ObjectEvent;
+use Vich\UploaderBundle\Mapping\Annotation\UploadableField;
 
 /**
  * JmsPreSerializeListener.
@@ -53,28 +54,33 @@ class JmsPreSerializeListener extends JmsSerializeListenerAbstract
                 $liipAnnotation = $this->annotationReader->getPropertyAnnotation($property, LiipImagineSerializableField::class);
                 $property->setAccessible(true);
                 if ($liipAnnotation instanceof LiipImagineSerializableField && ($value = $property->getValue($object)) && !is_array($value)) {
-                    $vichField = $liipAnnotation->getVichUploaderField();
+                    $vichField      = $liipAnnotation->getVichUploaderField();
 
-                    $uriComponents = explode($value, '/');
-                    $cacheKey      = $vichField.array_pop($uriComponents);
+                    $cacheKey = null;
+                    if ($vichField) {
+                        $uriComponents  = explode('/', $value);
+                        $vichProperty   = $reflectionClass->getProperty($vichField);
+                        $vichAnnotation = $this->annotationReader->getPropertyAnnotation($vichProperty, UploadableField::class);
+                        $cacheKey       = $vichField.array_pop($uriComponents).$vichAnnotation->getMapping();
 
-                    if (in_array($cacheKey, $this->cache)) {
-                        continue;
+                        if (in_array($cacheKey, $this->cache)) {
+                            continue;
+                        }
                     }
 
                     if (!$liipAnnotation->getVirtualField()) {
-                        $this->cache[] = $cacheKey;
-
                         $property->setValue($object, $this->serializeValue($liipAnnotation, $object, $value));
                     } elseif ($vichField && array_key_exists('vichUploaderSerialize', $this->config) && $this->config['vichUploaderSerialize']) {
-                        $this->cache[] = $cacheKey;
-
                         $originalImageUri = $this->vichStorage->resolveUri($object, $vichField);
 
                         if (array_key_exists('includeHost', $this->config) && $this->config['includeHost']) {
                             $originalImageUri = $this->getHostUrl().$originalImageUri;
                         }
                         $property->setValue($object, $this->normalizeUrl($originalImageUri, UrlNormalizerInterface::TYPE_ORIGIN));
+                    }
+
+                    if ($vichField) {
+                        $this->cache[] = $cacheKey;
                     }
                 }
             }
