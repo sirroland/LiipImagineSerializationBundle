@@ -15,18 +15,27 @@ use Bukashk0zzz\LiipImagineSerializationBundle\Annotation\LiipImagineSerializabl
 use Bukashk0zzz\LiipImagineSerializationBundle\Normalizer\UrlNormalizerInterface;
 use Doctrine\Common\Util\ClassUtils;
 use JMS\Serializer\EventDispatcher\ObjectEvent;
+use Vich\UploaderBundle\Mapping\Annotation\UploadableField;
 
 /**
- * JmsPreSerializeListener
+ * JmsPreSerializeListener.
  *
  * @author Denis Golubovskiy <bukashk0zzz@gmail.com>
  */
 class JmsPreSerializeListener extends JmsSerializeListenerAbstract
 {
     /**
-     * On pre serialize
+     * Cache attributes already processed (in case of collection serialization).
+     *
+     * @var array
+     */
+    private $cache = [];
+
+    /**
+     * On pre serialize.
      *
      * @param ObjectEvent $event Event
+     *
      * @throws \InvalidArgumentException
      */
     public function onPreSerialize(ObjectEvent $event)
@@ -44,9 +53,20 @@ class JmsPreSerializeListener extends JmsSerializeListenerAbstract
             foreach ($reflectionClass->getProperties() as $property) {
                 $liipAnnotation = $this->annotationReader->getPropertyAnnotation($property, LiipImagineSerializableField::class);
                 $property->setAccessible(true);
-
                 if ($liipAnnotation instanceof LiipImagineSerializableField && ($value = $property->getValue($object)) && !is_array($value)) {
-                    $vichField = $liipAnnotation->getVichUploaderField();
+                    $vichField      = $liipAnnotation->getVichUploaderField();
+
+                    $cacheKey = null;
+                    if ($vichField) {
+                        $uriComponents  = explode('/', $value);
+                        $vichProperty   = $reflectionClass->getProperty($vichField);
+                        $vichAnnotation = $this->annotationReader->getPropertyAnnotation($vichProperty, UploadableField::class);
+                        $cacheKey       = $vichField.array_pop($uriComponents).$vichAnnotation->getMapping();
+
+                        if (in_array($cacheKey, $this->cache)) {
+                            continue;
+                        }
+                    }
 
                     if (!$liipAnnotation->getVirtualField()) {
                         $property->setValue($object, $this->serializeValue($liipAnnotation, $object, $value));
@@ -57,6 +77,10 @@ class JmsPreSerializeListener extends JmsSerializeListenerAbstract
                             $originalImageUri = $this->getHostUrl().$originalImageUri;
                         }
                         $property->setValue($object, $this->normalizeUrl($originalImageUri, UrlNormalizerInterface::TYPE_ORIGIN));
+                    }
+
+                    if ($vichField) {
+                        $this->cache[] = $cacheKey;
                     }
                 }
             }
