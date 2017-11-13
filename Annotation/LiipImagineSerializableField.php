@@ -21,7 +21,7 @@ use Doctrine\ORM\Mapping\Annotation;
 final class LiipImagineSerializableField implements Annotation
 {
     /**
-     * @var string LiipImagine Filter
+     * @var string|string[]|null LiipImagine Filter
      */
     private $filter;
 

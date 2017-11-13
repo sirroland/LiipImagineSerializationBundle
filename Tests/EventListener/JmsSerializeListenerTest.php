@@ -261,7 +261,7 @@ class JmsSerializeListenerTest extends TestCase
         ]);
 
         static::assertEquals('/uploads/photo.jpg', $data['photo']);
-        static::assertFalse(\mb_strpos($data['cover']['original'], 'https://example.com:8800'));
+        static::assertFalse((bool) \mb_strpos($data['cover']['original'], 'https://example.com:8800'));
         static::assertEquals('https://example.com:8800/uploads/photo.jpg', $data['photoThumb']['original']);
     }
 
@@ -281,7 +281,7 @@ class JmsSerializeListenerTest extends TestCase
         ]);
 
         static::assertEquals('https://example.com:8800/uploads/photo.jpg', $data['photo']);
-        static::assertFalse(\mb_strpos($data['cover']['original'], 'https://example.com:8800'));
+        static::assertFalse((bool) \mb_strpos($data['cover']['original'], 'https://example.com:8800'));
         static::assertEquals('https://example.com:8800/uploads/photo.jpg', $data['photoThumb']['original']);
     }
 
@@ -303,7 +303,7 @@ class JmsSerializeListenerTest extends TestCase
         static::assertEquals('https://example.com:8800/a/path/to/an/resolve/image1.png', $data['cover']['big']);
         static::assertEquals('https://example.com:8800/a/path/to/an/resolve/image2.png', $data['cover']['small']);
         static::assertEquals('https://example.com:8800/uploads/photo.jpg', $data['photo']);
-        static::assertFalse(\mb_strpos($data['cover']['original'], 'https://example.com:8800'));
+        static::assertFalse((bool) \mb_strpos($data['cover']['original'], 'https://example.com:8800'));
         static::assertEquals('https://example.com:8800/uploads/photo.jpg', $data['photoThumb']['original']);
     }
 
