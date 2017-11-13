@@ -18,7 +18,8 @@
     },
     "require": {
         "php": ">=7.1.0",
-        "symfony/symfony": "^3.3",
+        "symfony/dependency-injection": "^3.3",
+        "symfony/yaml": "^3.3",
         "doctrine/orm": "^2.5",
         "jms/serializer-bundle": "^2.0",
         "liip/imagine-bundle": "^1.8",
