@@ -1,4 +1,4 @@
-# Symfony2/Symfony3 LiipImagineSerialization Bundle
+# Symfony LiipImagineSerialization Bundle
 
 [![Build Status](https://img.shields.io/scrutinizer/build/g/Bukashk0zzz/LiipImagineSerializationBundle.svg?style=flat-square)](https://travis-ci.org/Bukashk0zzz/LiipImagineSerializationBundle)
 [![Code Coverage](https://img.shields.io/codecov/c/github/Bukashk0zzz/LiipImagineSerializationBundle.svg?style=flat-square)](https://codecov.io/github/Bukashk0zzz/LiipImagineSerializationBundle)
