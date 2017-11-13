@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types = 1);
 
 namespace Bukashk0zzz\LiipImagineSerializationBundle\Event;
 
@@ -6,13 +6,11 @@ use Symfony\Component\EventDispatcher\Event;
 
 /**
  * UrlNormalizerEvent
- *
- * @author Denis Golubovskiy <bukashk0zzz@gmail.com>
  */
 class UrlNormalizerEvent extends Event
 {
-    const ORIGIN = 'bukashk0zzz_liip_imagine.event_pre_origin_normalize';
-    const FILTERED = 'bukashk0zzz_liip_imagine.event_pre_filtered_normalize';
+    public const ORIGIN = 'bukashk0zzz_liip_imagine.event_pre_origin_normalize';
+    public const FILTERED = 'bukashk0zzz_liip_imagine.event_pre_filtered_normalize';
 
     /**
      * @var string
@@ -22,7 +20,7 @@ class UrlNormalizerEvent extends Event
     /**
      * @param string $url
      */
-    public function __construct($url)
+    public function __construct(string $url)
     {
         $this->url = $url;
     }
@@ -30,16 +28,17 @@ class UrlNormalizerEvent extends Event
     /**
      * @return string
      */
-    public function getUrl()
+    public function getUrl(): string
     {
         return $this->url;
     }
 
     /**
      * @param string $url
-     * @return $this
+     *
+     * @return UrlNormalizerEvent
      */
-    public function setUrl($url)
+    public function setUrl(string $url): UrlNormalizerEvent
     {
         $this->url = $url;
 

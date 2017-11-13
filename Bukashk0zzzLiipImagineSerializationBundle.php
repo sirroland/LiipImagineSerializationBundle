@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types = 1);
 /*
  * This file is part of the Bukashk0zzzLiipImagineSerializationBundle
  *
@@ -14,8 +14,6 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 /**
  * Bukashk0zzzLiipImagineSerializationBundle
- *
- * @author Denis Golubovskiy <bukashk0zzz@gmail.com>
  */
 class Bukashk0zzzLiipImagineSerializationBundle extends Bundle
 {

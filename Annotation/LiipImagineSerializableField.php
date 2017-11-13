@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types = 1);
 /*
  * This file is part of the Bukashk0zzzLiipImagineSerializationBundle
  *
@@ -16,47 +15,42 @@ use Doctrine\ORM\Mapping\Annotation;
 /**
  * LiipImagineSerializableField
  *
- * @Annotation
+ * @Annotation()
  * @Target({"PROPERTY", "METHOD"})
- *
- * @author Denis Golubovskiy <bukashk0zzz@gmail.com>
  */
 final class LiipImagineSerializableField implements Annotation
 {
     /**
-     * @var string $filter LiipImagine Filter
+     * @var string LiipImagine Filter
      */
     private $filter;
 
     /**
-     * @var string $vichUploaderField Field
+     * @var string Field
      */
     private $vichUploaderField;
 
     /**
-     * @var string $virtualField Virtual Field
+     * @var string Virtual Field
      */
     private $virtualField;
 
     /**
-     * @var array $options Options
+     * @var mixed[] Options
      */
     private $options;
-
 
     /**
      * Constructor
      *
-     * @param array $options Options
-     *
-     * @throws \Exception
+     * @param mixed[] $options Options
      */
     public function __construct(array $options)
     {
         $this->options = $options;
 
-        if (!array_key_exists('value', $this->options) && !array_key_exists('filter', $this->options)) {
-            throw new \LogicException(sprintf('Either "value" or "filter" option must be set.'));
+        if (!\array_key_exists('value', $this->options) && !\array_key_exists('filter', $this->options)) {
+            throw new \LogicException(\sprintf('Either "value" or "filter" option must be set.'));
         }
 
         if ($this->checkOption('value', true)) {
@@ -75,7 +69,7 @@ final class LiipImagineSerializableField implements Annotation
     }
 
     /**
-     * @return string
+     * @return string|string[]|null
      */
     public function getFilter()
     {
@@ -83,10 +77,11 @@ final class LiipImagineSerializableField implements Annotation
     }
 
     /**
-     * @param string $filter
-     * @return $this
+     * @param string|string[] $filter
+     *
+     * @return LiipImagineSerializableField
      */
-    public function setFilter($filter)
+    public function setFilter($filter): LiipImagineSerializableField
     {
         $this->filter = $filter;
 
@@ -94,18 +89,19 @@ final class LiipImagineSerializableField implements Annotation
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getVichUploaderField()
+    public function getVichUploaderField(): ?string
     {
         return $this->vichUploaderField;
     }
 
     /**
      * @param string $vichUploaderField
-     * @return $this
+     *
+     * @return LiipImagineSerializableField
      */
-    public function setVichUploaderField($vichUploaderField)
+    public function setVichUploaderField(string $vichUploaderField): LiipImagineSerializableField
     {
         $this->vichUploaderField = $vichUploaderField;
 
@@ -113,18 +109,19 @@ final class LiipImagineSerializableField implements Annotation
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getVirtualField()
+    public function getVirtualField(): ?string
     {
         return $this->virtualField;
     }
 
     /**
      * @param string $virtualField
-     * @return $this
+     *
+     * @return LiipImagineSerializableField
      */
-    public function setVirtualField($virtualField)
+    public function setVirtualField(string $virtualField): LiipImagineSerializableField
     {
         $this->virtualField = $virtualField;
 
@@ -134,17 +131,19 @@ final class LiipImagineSerializableField implements Annotation
     /**
      * @param string $optionName
      * @param bool   $canBeArray
+     *
      * @return bool
-     * @throws \Exception
      */
-    private function checkOption($optionName, $canBeArray)
+    private function checkOption(string $optionName, bool $canBeArray): bool
     {
-        if (array_key_exists($optionName, $this->options)) {
-            if (!is_string($this->options[$optionName])) {
-                if ($canBeArray && !is_array($this->options[$optionName])) {
-                    throw new \InvalidArgumentException(sprintf('Option "'.$optionName.'" must be a array or string.'));
-                } elseif (!$canBeArray) {
-                    throw new \InvalidArgumentException(sprintf('Option "'.$optionName.'" must be a string.'));
+        if (\array_key_exists($optionName, $this->options)) {
+            if (!\is_string($this->options[$optionName])) {
+                if ($canBeArray && !\is_array($this->options[$optionName])) {
+                    throw new \InvalidArgumentException(\sprintf(\sprintf('Option "%s" must be a array or string.', $optionName)));
+                }
+
+                if (!$canBeArray) {
+                    throw new \InvalidArgumentException(\sprintf(\sprintf('Option "%s" must be a string.', $optionName)));
                 }
             }
 

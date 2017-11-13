@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types = 1);
 /*
  * This file is part of the Bukashk0zzzLiipImagineSerializationBundle
  *
@@ -11,56 +10,55 @@
 
 namespace Bukashk0zzz\LiipImagineSerializationBundle\Tests\EventListener;
 
+use Bukashk0zzz\LiipImagineSerializationBundle\Tests\Fixtures\User;
 use Bukashk0zzz\LiipImagineSerializationBundle\Tests\Fixtures\UserPhotos;
 use Bukashk0zzz\LiipImagineSerializationBundle\Tests\Fixtures\UserPictures;
 use Bukashk0zzz\LiipImagineSerializationBundle\Tests\Normalizer\FilteredUrlNormalizer;
 use Bukashk0zzz\LiipImagineSerializationBundle\Tests\Normalizer\OriginUrlNormalizer;
 use Doctrine\Common\Annotations\AnnotationRegistry;
 use JMS\Serializer\DeserializationContext;
-use JMS\Serializer\SerializerBuilder;
-use Symfony\Component\Routing\RequestContext;
 use JMS\Serializer\EventDispatcher\EventDispatcher;
-use Vich\UploaderBundle\Storage\StorageInterface;
+use JMS\Serializer\SerializerBuilder;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
+use Liip\ImagineBundle\Imagine\Cache\Resolver\ResolverInterface;
 use Liip\ImagineBundle\Imagine\Cache\Signer;
-use Bukashk0zzz\LiipImagineSerializationBundle\Tests\Fixtures\User;
+use Liip\ImagineBundle\Imagine\Filter\FilterConfiguration;
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Routing\RequestContext;
+use Symfony\Component\Routing\RouterInterface;
+use Vich\UploaderBundle\Storage\FileSystemStorage;
+use Vich\UploaderBundle\Storage\StorageInterface;
 
 /**
  * JmsSerializeListenerTest
- *
- * @author Denis Golubovskiy <bukashk0zzz@gmail.com>
  */
-class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
+class JmsSerializeListenerTest extends TestCase
 {
     /**
-     * @var RequestContext $requestContext Request context
+     * @var RequestContext Request context
      */
     private $requestContext;
 
     /**
-     * @var CacheManager $cacheManager LiipImagineBundle Cache Manager
+     * @var CacheManager LiipImagineBundle Cache Manager
      */
     private $cacheManager;
 
     /**
-     * @var StorageInterface $storage Vich storage
+     * @var StorageInterface Vich storage
      */
     private $vichStorage;
 
     /**
-     * @var JmsSerializeEventsManager $eventManager JMS Serialize test event manager
+     * @var JmsSerializeEventsManager JMS Serialize test event manager
      */
     private $eventManager;
 
     /**
-     * @var DeserializationContext $context JMS context
+     * @var DeserializationContext JMS context
      */
     private $context;
-
-    /**
-     * @var string $filePath Image file path
-     */
-    private $filePath;
 
     /**
      * {@inheritdoc}
@@ -68,7 +66,6 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
         AnnotationRegistry::registerLoader('class_exists');
-        $this->filePath = (new User())->getCoverUrl();
         $this->generateVichStorage();
         $this->context = (new JmsSerializeContextGenerator())->generateContext();
         $this->eventManager = new JmsSerializeEventsManager();
@@ -83,32 +80,31 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
         $this->eventManager = null;
         $this->cacheManager = null;
         $this->vichStorage = null;
-        $this->filePath = null;
     }
 
     /**
      * Test virtualField serialization
      */
-    public function testVirtualFieldSerialization()
+    public function testVirtualFieldSerialization(): void
     {
         $user = new User();
         $this->generateCacheManager();
         $this->generateRequestContext();
         $this->eventManager->addEventListeners($this->requestContext, $this->cacheManager, $this->vichStorage);
-        $serializer = SerializerBuilder::create()->configureListeners(function (EventDispatcher $dispatcher) {
+        $serializer = SerializerBuilder::create()->configureListeners(function (EventDispatcher $dispatcher): void {
             $this->eventManager->addEvents($dispatcher, $this->requestContext, $this->cacheManager, $this->vichStorage);
         })->build();
         $result = $serializer->serialize($user, 'json');
 
         static::assertJson($result);
-        $data = json_decode($result, true);
+        $data = \json_decode($result, true);
         static::assertEquals('http://example.com:8800/a/path/to/an/image3.png', $data['imageThumb']);
     }
 
     /**
      * Test serialization
      */
-    public function testSerialization()
+    public function testSerialization(): void
     {
         $user = new User();
         $this->generateCacheManager();
@@ -122,7 +118,7 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
     /**
      * Test serialization of proxy object and field with array of filters
      */
-    public function testProxySerialization()
+    public function testProxySerialization(): void
     {
         $userPictures = new UserPictures();
         $this->generateCacheManager();
@@ -139,7 +135,7 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
     /**
      * Test serialization with origin normalizer
      */
-    public function testSerializationWithOriginNormalizer()
+    public function testSerializationWithOriginNormalizer(): void
     {
         $userPictures = new UserPictures();
         $this->generateCacheManager();
@@ -158,7 +154,7 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
     /**
      * Test serialization with filtered normalizer
      */
-    public function testSerializationWithFilteredNormalizer()
+    public function testSerializationWithFilteredNormalizer(): void
     {
         $userPictures = new UserPictures();
         $this->generateCacheManager();
@@ -177,7 +173,7 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
     /**
      * Test serialization with event subscriber
      */
-    public function testSerializationWithEventSubscriber()
+    public function testSerializationWithEventSubscriber(): void
     {
         $userPictures = new UserPictures();
         $this->generateCacheManager();
@@ -200,7 +196,7 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
      *
      * @expectedException \InvalidArgumentException
      */
-    public function testSerializationWithUrlParseException()
+    public function testSerializationWithUrlParseException(): void
     {
         $userPictures = new UserPictures();
         $this->generateCacheManager('http://blah.com:abcdef');
@@ -213,7 +209,7 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
     /**
      * Test serialization with included http host and port in the URI and include original option "true"
      */
-    public function testHttpsSerialization()
+    public function testHttpsSerialization(): void
     {
         $userPictures = new UserPictures();
         $this->generateCacheManager();
@@ -234,7 +230,7 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
     /**
      * Test serialization without host in url and one filter
      */
-    public function testSerializationWithoutHost()
+    public function testSerializationWithoutHost(): void
     {
         $userPictures = new User();
         $this->generateCacheManager('/');
@@ -252,7 +248,7 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
     /**
      * Test serialization with host in url for original
      */
-    public function testSerializationWithHostForOriginal()
+    public function testSerializationWithHostForOriginal(): void
     {
         $userPictures = new UserPictures();
         $this->generateCacheManager();
@@ -265,14 +261,14 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
         ]);
 
         static::assertEquals('/uploads/photo.jpg', $data['photo']);
-        static::assertFalse(strpos($data['cover']['original'], 'https://example.com:8800'));
+        static::assertFalse(\mb_strpos($data['cover']['original'], 'https://example.com:8800'));
         static::assertEquals('https://example.com:8800/uploads/photo.jpg', $data['photoThumb']['original']);
     }
 
     /**
      * Test serialization with host in url and host in url for original
      */
-    public function testSerializationWithHostAndHostForOriginal()
+    public function testSerializationWithHostAndHostForOriginal(): void
     {
         $userPictures = new UserPictures();
         $this->generateCacheManager();
@@ -285,14 +281,14 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
         ]);
 
         static::assertEquals('https://example.com:8800/uploads/photo.jpg', $data['photo']);
-        static::assertFalse(strpos($data['cover']['original'], 'https://example.com:8800'));
+        static::assertFalse(\mb_strpos($data['cover']['original'], 'https://example.com:8800'));
         static::assertEquals('https://example.com:8800/uploads/photo.jpg', $data['photoThumb']['original']);
     }
 
     /**
      * Test serialization with host in url and host in url for original and non-stored (resolve path) images
      */
-    public function testSerializationWithHostAndHostForOriginalAndNonStoredImages()
+    public function testSerializationWithHostAndHostForOriginalAndNonStoredImages(): void
     {
         $userPhotos = new UserPhotos();
         $this->generateCacheManager('https://example.com:8800/', false);
@@ -307,14 +303,14 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
         static::assertEquals('https://example.com:8800/a/path/to/an/resolve/image1.png', $data['cover']['big']);
         static::assertEquals('https://example.com:8800/a/path/to/an/resolve/image2.png', $data['cover']['small']);
         static::assertEquals('https://example.com:8800/uploads/photo.jpg', $data['photo']);
-        static::assertFalse(strpos($data['cover']['original'], 'https://example.com:8800'));
+        static::assertFalse(\mb_strpos($data['cover']['original'], 'https://example.com:8800'));
         static::assertEquals('https://example.com:8800/uploads/photo.jpg', $data['photoThumb']['original']);
     }
 
     /**
      * Test serialization with no host in url and no host in url for original and non-stored (resolve path) images
      */
-    public function testSerializationWithNoHostAndNoHostForOriginalAndNonStoredImages()
+    public function testSerializationWithNoHostAndNoHostForOriginalAndNonStoredImages(): void
     {
         $userPhotos = new UserPhotos();
         $this->generateCacheManager('https://example.com:8800/', false);
@@ -335,7 +331,7 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
     /**
      * Test serialization with no host in url and no host in url for original and ONE non-stored (resolve path) image
      */
-    public function testSerializationWithNoHostAndNoHostForOriginalAndOneNonStoredImage()
+    public function testSerializationWithNoHostAndNoHostForOriginalAndOneNonStoredImage(): void
     {
         $userPictures = new UserPictures();
         $this->generateCacheManager('https://example.com:8800/', false);
@@ -354,7 +350,7 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
     /**
      * Test serialization without host in url and array of filters
      */
-    public function testSerializationWithoutHostManyFilters()
+    public function testSerializationWithoutHostManyFilters(): void
     {
         $userPhotos = new UserPhotos();
         $this->generateCacheManager('/');
@@ -374,33 +370,33 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @param User|UserPictures|UserPhotos $user
-     * @param array                        $config JMS serializer listner config
+     * @param mixed[]                      $config JMS serializer listner config
      *
-     * @return array
+     * @return mixed[]
      */
-    protected function serializeObject($user, array $config = [])
+    protected function serializeObject($user, array $config = []): array
     {
-        $serializer = SerializerBuilder::create()->configureListeners(function (EventDispatcher $dispatcher) use ($config) {
+        $serializer = SerializerBuilder::create()->configureListeners(function (EventDispatcher $dispatcher) use ($config): void {
             $this->eventManager->addEvents($dispatcher, $this->requestContext, $this->cacheManager, $this->vichStorage, $config);
         })->build();
         $result = $serializer->serialize($user, 'json');
 
         static::assertJson($result);
 
-        return json_decode($result, true);
+        return \json_decode($result, true);
     }
 
     /**
      * @param bool $https
      * @param bool $port
      */
-    protected function generateRequestContext($https = false, $port = false)
+    protected function generateRequestContext(bool $https = false, bool $port = false): void
     {
-        $this->requestContext = $this->getMockBuilder('Symfony\Component\Routing\RequestContext')
+        $this->requestContext = $this->getMockBuilder(RequestContext::class)
             ->disableOriginalConstructor()
             ->getMock();
 
-        $scheme = $https ? 'https':'http';
+        $scheme = $https ? 'https' : 'http';
 
         $this->requestContext->expects(static::any())
             ->method('getScheme')
@@ -429,11 +425,11 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
      * Prepare mock of Liip cache manager
      *
      * @param string $urlPrefix
-     * @param bool $isStored
+     * @param bool   $isStored
      */
-    protected function generateCacheManager($urlPrefix = 'http://example.com:8800/', $isStored = true)
+    protected function generateCacheManager(string $urlPrefix = 'http://example.com:8800/', bool $isStored = true): void
     {
-        $resolver = $this->getMockBuilder('Liip\ImagineBundle\Imagine\Cache\Resolver\ResolverInterface')->getMock();
+        $resolver = $this->getMockBuilder(ResolverInterface::class)->getMock();
         $resolver
             ->expects(static::any())
             ->method('isStored')
@@ -445,23 +441,23 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
             ->will(static::onConsecutiveCalls($urlPrefix.'a/path/to/an/image1.png', $urlPrefix.'a/path/to/an/image2.png', $urlPrefix.'a/path/to/an/image3.png', $urlPrefix.'a/path/to/an/image4.png'))
         ;
 
-        $config = $this->getMockBuilder('Liip\ImagineBundle\Imagine\Filter\FilterConfiguration')->getMock();
+        $config = $this->getMockBuilder(FilterConfiguration::class)->getMock();
         $config->expects(static::any())
             ->method('get')
-            ->will(static::returnValue(array(
-                'size' => array(180, 180),
+            ->will(static::returnValue([
+                'size' => [180, 180],
                 'mode' => 'outbound',
                 'cache' => null,
-            )))
+            ]))
         ;
 
-        $router = $this->getMockBuilder('Symfony\Component\Routing\RouterInterface')->getMock();
+        $router = $this->getMockBuilder(RouterInterface::class)->getMock();
         $router->expects(static::any())
             ->method('generate')
             ->will(static::onConsecutiveCalls($urlPrefix.'a/path/to/an/resolve/image1.png', $urlPrefix.'a/path/to/an/resolve/image2.png', $urlPrefix.'a/path/to/an/resolve/image3.png', $urlPrefix.'a/path/to/an/resole/image4.png'))
         ;
 
-        $eventDispatcher = $this->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcherInterface')->getMock();
+        $eventDispatcher = $this->getMockBuilder(EventDispatcherInterface::class)->getMock();
 
         /** @noinspection PhpParamsInspection */
         $this->cacheManager = new CacheManager($config, $router, new Signer('secret'), $eventDispatcher);
@@ -473,9 +469,9 @@ class JmsSerializeListenerTest extends \PHPUnit_Framework_TestCase
     /**
      * Generate vichStorage mock
      */
-    protected function generateVichStorage()
+    protected function generateVichStorage(): void
     {
-        $this->vichStorage = $this->getMockBuilder('Vich\UploaderBundle\Storage\FileSystemStorage')
+        $this->vichStorage = $this->getMockBuilder(FileSystemStorage::class)
             ->disableOriginalConstructor()
             ->getMock();
         $this->vichStorage->expects(static::any())

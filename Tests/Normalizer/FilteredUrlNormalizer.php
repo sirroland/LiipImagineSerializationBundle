@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types = 1);
 /*
  * This file is part of the Bukashk0zzzLiipImagineSerializationBundle
  *
@@ -21,8 +20,8 @@ class FilteredUrlNormalizer implements UrlNormalizerInterface
     /**
      * {@inheritdoc}
      */
-    public function normalize($url)
+    public function normalize(?string $url): string
     {
-        return str_replace('example.com', 'img.example.com', $url);
+        return \str_replace('example.com', 'img.example.com', $url);
     }
 }

@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types = 1);
 /*
  * This file is part of the Bukashk0zzzLiipImagineSerializationBundle
  *
@@ -14,38 +13,37 @@ namespace Bukashk0zzz\LiipImagineSerializationBundle\Tests\EventListener;
 use Bukashk0zzz\LiipImagineSerializationBundle\EventListener\JmsPostSerializeListener;
 use Bukashk0zzz\LiipImagineSerializationBundle\EventListener\JmsPreSerializeListener;
 use Bukashk0zzz\LiipImagineSerializationBundle\Tests\EventSubscriber\Bukashk0zzzSerializationEventSubscriber;
-use Bukashk0zzz\LiipImagineSerializationBundle\Tests\Fixtures\UserPictures;
 use Bukashk0zzz\LiipImagineSerializationBundle\Tests\Fixtures\User;
-use JMS\Serializer\DeserializationContext;
-use JMS\Serializer\EventDispatcher\ObjectEvent;
-use JMS\Serializer\EventDispatcher\Events as JmsEvents;
-use JMS\Serializer\EventDispatcher\EventDispatcher;
+use Bukashk0zzz\LiipImagineSerializationBundle\Tests\Fixtures\UserPictures;
+use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\CachedReader;
 use Doctrine\Common\Cache\ArrayCache;
-use Doctrine\Common\Annotations\AnnotationReader;
-use Symfony\Component\Routing\RequestContext;
+use JMS\Serializer\DeserializationContext;
+use JMS\Serializer\EventDispatcher\EventDispatcher;
+use JMS\Serializer\EventDispatcher\Events as JmsEvents;
+use JMS\Serializer\EventDispatcher\ObjectEvent;
 use Liip\ImagineBundle\Imagine\Cache\CacheManager;
+use Symfony\Component\EventDispatcher\EventDispatcher as SymfonyEventDispatcher;
+use Symfony\Component\Routing\RequestContext;
 use Vich\UploaderBundle\Storage\StorageInterface;
 
 /**
  * JmsSerializeEventsManager
- *
- * @author Denis Golubovskiy <bukashk0zzz@gmail.com>
  */
 class JmsSerializeEventsManager
 {
     /**
-     * @var EventDispatcher $dispatcher Dispatcher
+     * @var EventDispatcher Dispatcher
      */
     private $dispatcher;
 
     /**
-     * @var CachedReader $annotationReader Cached annotation reader
+     * @var CachedReader Cached annotation reader
      */
     private $annotationReader;
 
     /**
-     * @var \Symfony\Component\EventDispatcher\EventDispatcher
+     * @var SymfonyEventDispatcher
      */
     private $symfonyEventDispatcher;
 
@@ -55,7 +53,7 @@ class JmsSerializeEventsManager
     public function __construct()
     {
         $this->annotationReader = new CachedReader(new AnnotationReader(), new ArrayCache());
-        $this->symfonyEventDispatcher = new \Symfony\Component\EventDispatcher\EventDispatcher();
+        $this->symfonyEventDispatcher = new SymfonyEventDispatcher();
     }
 
     /**
@@ -65,18 +63,19 @@ class JmsSerializeEventsManager
      * @param CacheManager     $cacheManager
      * @param StorageInterface $vichStorage
      */
-    public function addEventListeners(RequestContext $requestContext, CacheManager $cacheManager, StorageInterface $vichStorage)
+    public function addEventListeners(RequestContext $requestContext, CacheManager $cacheManager, StorageInterface $vichStorage): void
     {
         $this->dispatcher = new EventDispatcher();
-        $this->addEvents($this->dispatcher, $requestContext, $cacheManager, $vichStorage, []);
+        $this->addEvents($this->dispatcher, $requestContext, $cacheManager, $vichStorage);
     }
 
     /**
      * @param DeserializationContext $context
      * @param User|UserPictures      $user
+     *
      * @return ObjectEvent
      */
-    public function dispatchEvents($context, $user)
+    public function dispatchEvents(DeserializationContext $context, $user): ObjectEvent
     {
         /** @noinspection PhpParamsInspection */
         $event = new ObjectEvent($context, $user, []);
@@ -87,18 +86,17 @@ class JmsSerializeEventsManager
     }
 
     /** @noinspection MoreThanThreeArgumentsInspection
-     *
      * Add post & pre serialize event to dispatcher
      *
      * @param EventDispatcher  $dispatcher
      * @param RequestContext   $requestContext
      * @param CacheManager     $cacheManager
      * @param StorageInterface $vichStorage
-     * @param array            $config         JMS serializer listner config
+     * @param mixed[]          $config         JMS serializer listner config
      */
-    public function addEvents(EventDispatcher $dispatcher, RequestContext $requestContext, CacheManager $cacheManager, StorageInterface $vichStorage, array $config = [])
+    public function addEvents(EventDispatcher $dispatcher, RequestContext $requestContext, CacheManager $cacheManager, StorageInterface $vichStorage, array $config = []): void
     {
-        if (count($config) === 0) {
+        if (\count($config) === 0) {
             $config = [
                 'includeHost' => true,
                 'vichUploaderSerialize' => true,
@@ -116,7 +114,7 @@ class JmsSerializeEventsManager
     /**
      * Add normalizer subscriber
      */
-    public function addNormalizerSubscriber()
+    public function addNormalizerSubscriber(): void
     {
         $this->symfonyEventDispatcher->addSubscriber(new Bukashk0zzzSerializationEventSubscriber());
     }

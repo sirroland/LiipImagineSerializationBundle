@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types = 1);
 /*
  * This file is part of the Bukashk0zzzLiipImagineSerializationBundle
  *
@@ -12,18 +11,17 @@
 namespace Bukashk0zzz\LiipImagineSerializationBundle\Tests\Annotation;
 
 use Bukashk0zzz\LiipImagineSerializationBundle\Annotation\LiipImagineSerializableField;
+use PHPUnit\Framework\TestCase;
 
 /**
  * LiipImagineSerializableFieldTest
- *
- * @author Denis Golubovskiy <bukashk0zzz@gmail.com>
  */
-class LiipImagineSerializableFieldTest extends \PHPUnit_Framework_TestCase
+class LiipImagineSerializableFieldTest extends TestCase
 {
     /**
      * Test annotation with `value` option
      */
-    public function testValueOption()
+    public function testValueOption(): void
     {
         $annotation = new LiipImagineSerializableField(['value' => 'thumb_filter']);
 
@@ -35,7 +33,7 @@ class LiipImagineSerializableFieldTest extends \PHPUnit_Framework_TestCase
     /**
      * Test annotation with all options
      */
-    public function testAllOptions()
+    public function testAllOptions(): void
     {
         $annotation = new LiipImagineSerializableField([
             'filter' => 'thumb_filter',
@@ -53,7 +51,7 @@ class LiipImagineSerializableFieldTest extends \PHPUnit_Framework_TestCase
      *
      * @expectedException \LogicException
      */
-    public function testAnnotationWithoutOptions()
+    public function testAnnotationWithoutOptions(): void
     {
         new LiipImagineSerializableField([]);
     }
@@ -63,7 +61,7 @@ class LiipImagineSerializableFieldTest extends \PHPUnit_Framework_TestCase
      *
      * @expectedException \InvalidArgumentException
      */
-    public function testWrongTypeForFilterOption()
+    public function testWrongTypeForFilterOption(): void
     {
         new LiipImagineSerializableField(['filter' => 123]);
     }
@@ -73,7 +71,7 @@ class LiipImagineSerializableFieldTest extends \PHPUnit_Framework_TestCase
      *
      * @expectedException \InvalidArgumentException
      */
-    public function testWrongTypeForValueOption()
+    public function testWrongTypeForValueOption(): void
     {
         new LiipImagineSerializableField(['value' => 123]);
     }
@@ -83,7 +81,7 @@ class LiipImagineSerializableFieldTest extends \PHPUnit_Framework_TestCase
      *
      * @expectedException \InvalidArgumentException
      */
-    public function testWrongTypeForVichUploaderFieldOption()
+    public function testWrongTypeForVichUploaderFieldOption(): void
     {
         new LiipImagineSerializableField(['filter' => 'thumb_filter', 'vichUploaderField' => 123]);
     }
@@ -93,7 +91,7 @@ class LiipImagineSerializableFieldTest extends \PHPUnit_Framework_TestCase
      *
      * @expectedException \InvalidArgumentException
      */
-    public function testWrongTypeForVirtualFieldOption()
+    public function testWrongTypeForVirtualFieldOption(): void
     {
         new LiipImagineSerializableField(['filter' => 'thumb_filter', 'virtualField' => 123]);
     }

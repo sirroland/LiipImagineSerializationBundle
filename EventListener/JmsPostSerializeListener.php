@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types = 1);
 /*
  * This file is part of the Bukashk0zzzLiipImagineSerializationBundle
  *
@@ -18,8 +18,6 @@ use JMS\Serializer\GenericSerializationVisitor;
 
 /**
  * JmsPostSerializeListener
- *
- * @author Denis Golubovskiy <bukashk0zzz@gmail.com>
  */
 class JmsPostSerializeListener extends JmsSerializeListenerAbstract
 {
@@ -27,9 +25,8 @@ class JmsPostSerializeListener extends JmsSerializeListenerAbstract
      * On post serialize
      *
      * @param ObjectEvent $event Event
-     * @throws \InvalidArgumentException
      */
-    public function onPostSerialize(ObjectEvent $event)
+    public function onPostSerialize(ObjectEvent $event): void
     {
         $object = $this->getObject($event);
 
@@ -39,22 +36,27 @@ class JmsPostSerializeListener extends JmsSerializeListenerAbstract
         );
 
         if ($classAnnotation instanceof LiipImagineSerializableClass) {
-            $reflectionClass = ClassUtils::newReflectionClass(get_class($object));
+            $reflectionClass = ClassUtils::newReflectionClass(\get_class($object));
 
             foreach ($reflectionClass->getProperties() as $property) {
                 $liipAnnotation = $this->annotationReader->getPropertyAnnotation($property, LiipImagineSerializableField::class);
                 $property->setAccessible(true);
 
-                if ($liipAnnotation instanceof LiipImagineSerializableField && ($value = $property->getValue($object)) && !is_array($value) && $virtualField = $liipAnnotation->getVirtualField()) {
-                    if (array_key_exists('vichUploaderSerialize', $this->config) && $this->config['vichUploaderSerialize'] && $liipAnnotation->getVichUploaderField()) {
-                        $valueArray = explode('/', $value);
-                        $value = end($valueArray);
-                        $property->setValue($object, $value);
-                    }
+                if ($liipAnnotation instanceof LiipImagineSerializableField) {
+                    $value = $property->getValue($object);
+                    $virtualField = $liipAnnotation->getVirtualField();
 
-                    /** @var GenericSerializationVisitor $visitor */
-                    $visitor = $event->getVisitor();
-                    $visitor->setData($virtualField, $this->serializeValue($liipAnnotation, $object, $value));
+                    if ($value && !\is_array($value) && $virtualField) {
+                        if (\array_key_exists('vichUploaderSerialize', $this->config) && $this->config['vichUploaderSerialize'] && $liipAnnotation->getVichUploaderField()) {
+                            $valueArray = \explode('/', $value);
+                            $value = \end($valueArray);
+                            $property->setValue($object, $value);
+                        }
+
+                        /** @var GenericSerializationVisitor $visitor */
+                        $visitor = $event->getVisitor();
+                        $visitor->setData($virtualField, $this->serializeValue($liipAnnotation, $object, $value));
+                    }
                 }
             }
         }

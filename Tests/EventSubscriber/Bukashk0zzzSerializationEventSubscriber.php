@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types = 1);
 /*
  * This file is part of the Bukashk0zzzLiipImagineSerializationBundle
  *
@@ -16,15 +15,13 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
  * Bukashk0zzzSerializationEventSubscriber
- *
- * @author Denis Golubovskiy <bukashk0zzz@gmail.com>
  */
 class Bukashk0zzzSerializationEventSubscriber implements EventSubscriberInterface
 {
     /**
-     * @return array
+     * @return mixed[]
      */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             UrlNormalizerEvent::ORIGIN => [
@@ -39,16 +36,16 @@ class Bukashk0zzzSerializationEventSubscriber implements EventSubscriberInterfac
     /**
      * @param UrlNormalizerEvent $event
      */
-    public function normalizeOrigin(UrlNormalizerEvent $event)
+    public function normalizeOrigin(UrlNormalizerEvent $event): void
     {
-        $event->setUrl(str_replace('photo', 'newPhoto', $event->getUrl()));
+        $event->setUrl(\str_replace('photo', 'newPhoto', $event->getUrl()));
     }
 
     /**
      * @param UrlNormalizerEvent $event
      */
-    public function normalizeFiltered(UrlNormalizerEvent $event)
+    public function normalizeFiltered(UrlNormalizerEvent $event): void
     {
-        $event->setUrl(str_replace('example.com', 'img.example.com', $event->getUrl()));
+        $event->setUrl(\str_replace('example.com', 'img.example.com', $event->getUrl()));
     }
 }

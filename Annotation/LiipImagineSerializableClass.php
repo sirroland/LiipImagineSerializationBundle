@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types = 1);
 /*
  * This file is part of the Bukashk0zzzLiipImagineSerializationBundle
  *
@@ -16,10 +15,8 @@ use Doctrine\ORM\Mapping\Annotation;
 /**
  * LiipImagineSerializableClass
  *
- * @Annotation
+ * @Annotation()
  * @Target({"CLASS", "ANNOTATION"})
- *
- * @author Denis Golubovskiy <bukashk0zzz@gmail.com>
  */
 final class LiipImagineSerializableClass implements Annotation
 {

@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types = 1);
 /*
  * This file is part of the Bukashk0zzzLiipImagineSerializationBundle
  *
@@ -11,13 +10,12 @@
 
 namespace Bukashk0zzz\LiipImagineSerializationBundle\DependencyInjection;
 
+use Symfony\Component\Config\Definition\Builder\NodeParentInterface;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 /**
  * This is the configuration class
- *
- * @author Denis Golubovskiy <bukashk0zzz@gmail.com>
  */
 class Configuration implements ConfigurationInterface
 {
@@ -25,9 +23,8 @@ class Configuration implements ConfigurationInterface
      * Generates the configuration tree.
      *
      * @return \Symfony\Component\Config\Definition\Builder\NodeParentInterface
-     * @throws \Exception
      */
-    public function getConfigTreeBuilder()
+    public function getConfigTreeBuilder(): NodeParentInterface
     {
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('bukashk0zzz_liip_imagine_serialization');

@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types = 1);
 /*
  * This file is part of the Bukashk0zzzLiipImagineSerializationBundle
  *
@@ -12,22 +11,21 @@
 namespace Bukashk0zzz\LiipImagineSerializationBundle\Tests\DependencyInjection;
 
 use Bukashk0zzz\LiipImagineSerializationBundle\DependencyInjection\Bukashk0zzzLiipImagineSerializationExtension;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
  * Bukashk0zzzLiipImagineSerializationTest
- *
- * @author Denis Golubovskiy <bukashk0zzz@gmail.com>
  */
-class Bukashk0zzzLiipImagineSerializationExtensionTest extends \PHPUnit_Framework_TestCase
+class Bukashk0zzzLiipImagineSerializationExtensionTest extends TestCase
 {
     /**
-     * @var Bukashk0zzzLiipImagineSerializationExtension $extension Bukashk0zzzLiipImagineSerializationExtension
+     * @var Bukashk0zzzLiipImagineSerializationExtension Bukashk0zzzLiipImagineSerializationExtension
      */
     private $extension;
 
     /**
-     * @var ContainerBuilder $container Container builder
+     * @var ContainerBuilder Container builder
      */
     private $container;
 
@@ -44,7 +42,7 @@ class Bukashk0zzzLiipImagineSerializationExtensionTest extends \PHPUnit_Framewor
     /**
      * Test load extension
      */
-    public function testLoadExtension()
+    public function testLoadExtension(): void
     {
         // Add some dummy required services
         $this->container->set('router.request_context', new \stdClass());

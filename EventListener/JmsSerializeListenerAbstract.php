@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types = 1);
 /*
  * This file is part of the Bukashk0zzzLiipImagineSerializationBundle
  *
@@ -14,47 +14,45 @@ use Bukashk0zzz\LiipImagineSerializationBundle\Annotation\LiipImagineSerializabl
 use Bukashk0zzz\LiipImagineSerializationBundle\Event\UrlNormalizerEvent;
 use Bukashk0zzz\LiipImagineSerializationBundle\Normalizer\UrlNormalizerInterface;
 use Doctrine\Common\Annotations\CachedReader;
+use Doctrine\Common\Persistence\Proxy;
 use JMS\Serializer\EventDispatcher\ObjectEvent;
+use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Routing\RequestContext;
-use Doctrine\Common\Persistence\Proxy;
-use Liip\ImagineBundle\Imagine\Cache\CacheManager;
 use Vich\UploaderBundle\Storage\StorageInterface;
 
 /**
  * JmsSerializeListenerAbstract
- *
- * @author Denis Golubovskiy <bukashk0zzz@gmail.com>
  */
 class JmsSerializeListenerAbstract
 {
     /**
-     * @var RequestContext $requestContext Request context
+     * @var RequestContext Request context
      */
     protected $requestContext;
 
     /**
-     * @var CachedReader $annotationReader Cached annotation reader
+     * @var CachedReader Cached annotation reader
      */
     protected $annotationReader;
 
     /**
-     * @var CacheManager $cacheManager LiipImagineBundle Cache Manager
+     * @var CacheManager LiipImagineBundle Cache Manager
      */
     protected $cacheManager;
 
     /**
-     * @var StorageInterface $storage Vich storage
+     * @var StorageInterface Vich storage
      */
     protected $vichStorage;
 
     /**
-     * @var EventDispatcherInterface $eventDispatcher
+     * @var EventDispatcherInterface
      */
     protected $eventDispatcher;
 
     /**
-     * @var array $config Bundle config
+     * @var mixed[] Bundle config
      */
     protected $config;
 
@@ -66,7 +64,7 @@ class JmsSerializeListenerAbstract
      * @param CacheManager             $cacheManager
      * @param StorageInterface         $vichStorage
      * @param EventDispatcherInterface $eventDispatcher
-     * @param array                    $config
+     * @param mixed[]                  $config
      */
     public function __construct(
         RequestContext $requestContext,
@@ -86,6 +84,7 @@ class JmsSerializeListenerAbstract
 
     /**
      * @param ObjectEvent $event Event
+     *
      * @return mixed
      */
     protected function getObject(ObjectEvent $event)
@@ -93,7 +92,7 @@ class JmsSerializeListenerAbstract
         $object = $event->getObject();
 
         if ($object instanceof Proxy
-            && ! $object->__isInitialized()
+            && !$object->__isInitialized()
         ) {
             $object->__load();
         }
@@ -103,29 +102,28 @@ class JmsSerializeListenerAbstract
 
     /**
      * @param LiipImagineSerializableField $liipAnnotation
-     * @param object $object Serialized object
-     * @param string $value Value of field
+     * @param mixed                        $object         Serialized object
+     * @param string                       $value          Value of field
      *
-     * @return array|string
-     *
-     * @throws \InvalidArgumentException
+     * @return mixed[]|string
      */
     protected function serializeValue(LiipImagineSerializableField $liipAnnotation, $object, $value)
     {
-        if ($vichField = $liipAnnotation->getVichUploaderField()) {
+        $vichField = $liipAnnotation->getVichUploaderField();
+        if ($vichField !== null) {
             $value = $this->vichStorage->resolveUri($object, $vichField);
         }
 
         $result = [];
         $value = $this->normalizeUrl($value, UrlNormalizerInterface::TYPE_ORIGIN);
-        if (array_key_exists('includeOriginal', $this->config) && $this->config['includeOriginal']) {
-            $result['original'] = (array_key_exists('includeHostForOriginal', $this->config) && $this->config['includeHostForOriginal'] && $liipAnnotation->getVichUploaderField())
+        if (\array_key_exists('includeOriginal', $this->config) && $this->config['includeOriginal']) {
+            $result['original'] = (\array_key_exists('includeHostForOriginal', $this->config) && $this->config['includeHostForOriginal'] && $liipAnnotation->getVichUploaderField())
                 ? $this->getHostUrl().$value
                 : $value;
         }
 
         $filters = $liipAnnotation->getFilter();
-        if (is_array($filters)) {
+        if (\is_array($filters)) {
             /** @var array $filters */
             foreach ($filters as $filter) {
                 $result[$filter] = $this->prepareFilteredUrl($this->cacheManager->getBrowserPath($value, $filter));
@@ -135,7 +133,7 @@ class JmsSerializeListenerAbstract
         }
 
         $filtered = $this->cacheManager->getBrowserPath($value, $filters);
-        if (count($result) !== 0) {
+        if (\count($result) !== 0) {
             $result[$filters] = $this->prepareFilteredUrl($filtered);
 
             return $result;
@@ -149,7 +147,7 @@ class JmsSerializeListenerAbstract
      *
      * @return string Host url
      */
-    protected function getHostUrl()
+    protected function getHostUrl(): string
     {
         $url = $this->requestContext->getScheme().'://'.$this->requestContext->getHost();
 
@@ -167,13 +165,14 @@ class JmsSerializeListenerAbstract
      *
      * @param string $url
      * @param string $normalizer
+     *
      * @return string
      */
-    protected function normalizeUrl($url, $normalizer)
+    protected function normalizeUrl(string $url, string $normalizer): string
     {
         $url = $this->addPreNormalizeUrlEvent($normalizer, $url);
 
-        if (array_key_exists($normalizer, $this->config) && $this->config[$normalizer]) {
+        if (\array_key_exists($normalizer, $this->config) && $this->config[$normalizer]) {
             $normalizerClassName = $this->config[$normalizer];
             $normalizer = new $normalizerClassName();
             if ($normalizer instanceof UrlNormalizerInterface) {
@@ -187,13 +186,13 @@ class JmsSerializeListenerAbstract
     /**
      * If config demands, it will remove host and scheme (protocol) from passed url
      *
-     * @param $url
+     * @param string $url
+     *
      * @return string
-     * @throws \InvalidArgumentException
      */
-    private function prepareFilteredUrl($url)
+    private function prepareFilteredUrl(string $url): string
     {
-        if (array_key_exists('includeHost', $this->config) && !$this->config['includeHost']) {
+        if (\array_key_exists('includeHost', $this->config) && !$this->config['includeHost']) {
             $url = $this->stripHostFromUrl($url);
         }
 
@@ -203,15 +202,15 @@ class JmsSerializeListenerAbstract
     /**
      * Removes host and scheme (protocol) from passed url
      *
-     * @param $url
+     * @param string $url
+     *
      * @return string
-     * @throws \InvalidArgumentException
      */
-    private function stripHostFromUrl($url)
+    private function stripHostFromUrl(string $url): string
     {
-        $parts = parse_url($url);
-        if ($parts !== false && array_key_exists('path', $parts)) {
-            return array_key_exists('query', $parts) ? $parts['path'].'?'.$parts['query'] : $parts['path'];
+        $parts = \parse_url($url);
+        if ($parts !== false && \array_key_exists('path', $parts)) {
+            return \array_key_exists('query', $parts) ? $parts['path'].'?'.$parts['query'] : $parts['path'];
         }
 
         throw new \InvalidArgumentException('Can\'t strip host from url, because can\'t parse url.');
@@ -223,7 +222,7 @@ class JmsSerializeListenerAbstract
      *
      * @return string
      */
-    private function addPreNormalizeUrlEvent($type, $url)
+    private function addPreNormalizeUrlEvent(string $type, string $url): string
     {
         /** @var UrlNormalizerEvent $event */
         $event = $this->eventDispatcher->dispatch(

@@ -1,5 +1,4 @@
-<?php
-
+<?php declare(strict_types = 1);
 /*
  * This file is part of the Bukashk0zzzLiipImagineSerializationBundle
  *
@@ -13,28 +12,27 @@ namespace Bukashk0zzz\LiipImagineSerializationBundle\Tests\EventListener;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use JMS\Serializer\Construction\UnserializeObjectConstructor;
-use JMS\Serializer\Handler\HandlerRegistry;
-use JMS\Serializer\Metadata\Driver\AnnotationDriver;
 use JMS\Serializer\DeserializationContext;
+use JMS\Serializer\EventDispatcher\EventDispatcher;
 use JMS\Serializer\GraphNavigator;
+use JMS\Serializer\Handler\HandlerRegistry;
 use JMS\Serializer\JsonSerializationVisitor;
+use JMS\Serializer\Metadata\Driver\AnnotationDriver;
 use JMS\Serializer\Naming\CamelCaseNamingStrategy;
 use JMS\Serializer\Naming\SerializedNameAnnotationStrategy;
 use Metadata\MetadataFactory;
-use JMS\Serializer\EventDispatcher\EventDispatcher;
 
 /**
  * JmsSerializeContextGenerator
- *
- * @author Denis Golubovskiy <bukashk0zzz@gmail.com>
  */
 class JmsSerializeContextGenerator
 {
     /**
      * Generate JMS context
+     *
      * @return DeserializationContext
      */
-    public function generateContext()
+    public function generateContext(): DeserializationContext
     {
         $namingStrategy = new SerializedNameAnnotationStrategy(new CamelCaseNamingStrategy());
 

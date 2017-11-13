@@ -19,17 +19,20 @@ Provides integration between [LiipImagineBundle](https://github.com/liip/LiipIma
 Allows to generate full or relative URIs to entity fields mapped with `@Bukashk0zzz` and `@JMS` annotations during the serialization.
 Also bundle supports [VichUploaderBundle](https://github.com/dustin10/VichUploaderBundle "VichUploaderBundle") field type.
 
-Installation
+Installation Symfony Flex
 ------------
 
-Add this to your `composer.json` file:
-
-```json
-"require": {
-	"bukashk0zzz/liip-imagine-serialization-bundle": "^1.1"
-}
+```bash
+composer config extra.symfony.allow-contrib true
+composer require bukashk0zzz/liip-imagine-serialization-bundle
 ```
 
+Installation without Symfony Flex
+------------
+
+```bash
+composer require bukashk0zzz/liip-imagine-serialization-bundle
+```
 
 Add the bundle to `app/AppKernel.php`
 
