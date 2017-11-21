@@ -62,7 +62,7 @@ class JmsPreSerializeListener extends JmsSerializeListenerAbstract
                             $vichAnnotation = $this->annotationReader->getPropertyAnnotation($vichProperty, UploadableField::class);
                             $cacheKey = $vichField.\array_pop($uriComponents).$vichAnnotation->getMapping();
 
-                            if (array_key_exists($cacheKey, $this->cache)) {
+                            if (\array_key_exists($cacheKey, $this->cache)) {
                                 $property->setValue($object, $this->cache[$cacheKey]);
                                 continue;
                             }
