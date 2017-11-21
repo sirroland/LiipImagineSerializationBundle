@@ -116,6 +116,38 @@ class JmsSerializeListenerTest extends TestCase
     }
 
     /**
+     * Test serialization twice same value
+     */
+    public function testSerializationMultipleTimeSameValue(): void
+    {
+        $user = new User();
+        $userTwo = new User();
+        $this->generateCacheManager();
+        $this->generateRequestContext();
+        $this->eventManager->addEventListeners($this->requestContext, $this->cacheManager, $this->vichStorage);
+        $this->eventManager->dispatchEvents($this->context, $user);
+        $this->eventManager->dispatchEvents($this->context, $userTwo);
+        static::assertEquals('http://example.com:8800/a/path/to/an/image2.png', $user->getPhotoName());
+        static::assertEquals('http://example.com:8800/a/path/to/an/image2.png', $userTwo->getPhotoName());
+    }
+
+    /**
+     * Test serialization twice same value
+     */
+    public function testSerializationMultipleDifferentValue(): void
+    {
+        $user = new User('test_user_1.png');
+        $userTwo = new User('test_user_2.png');
+        $this->generateCacheManager();
+        $this->generateRequestContext();
+        $this->eventManager->addEventListeners($this->requestContext, $this->cacheManager, $this->vichStorage);
+        $this->eventManager->dispatchEvents($this->context, $user);
+        $this->eventManager->dispatchEvents($this->context, $userTwo);
+        static::assertEquals('http://example.com:8800/a/path/to/an/image2.png', $user->getPhotoName());
+        static::assertEquals('http://example.com:8800/a/path/to/an/image5.png', $userTwo->getPhotoName());
+    }
+
+    /**
      * Test serialization of proxy object and field with array of filters
      */
     public function testProxySerialization(): void
@@ -438,7 +470,16 @@ class JmsSerializeListenerTest extends TestCase
         $resolver
             ->expects(static::any())
             ->method('resolve')
-            ->will(static::onConsecutiveCalls($urlPrefix.'a/path/to/an/image1.png', $urlPrefix.'a/path/to/an/image2.png', $urlPrefix.'a/path/to/an/image3.png', $urlPrefix.'a/path/to/an/image4.png'))
+            ->will(static::onConsecutiveCalls(
+                $urlPrefix.'a/path/to/an/image1.png',
+                $urlPrefix.'a/path/to/an/image2.png',
+                $urlPrefix.'a/path/to/an/image3.png',
+                $urlPrefix.'a/path/to/an/image4.png',
+                $urlPrefix.'a/path/to/an/image5.png',
+                $urlPrefix.'a/path/to/an/image6.png',
+                $urlPrefix.'a/path/to/an/image7.png',
+                $urlPrefix.'a/path/to/an/image8.png'
+            ))
         ;
 
         $config = $this->getMockBuilder(FilterConfiguration::class)->getMock();
@@ -454,7 +495,16 @@ class JmsSerializeListenerTest extends TestCase
         $router = $this->getMockBuilder(RouterInterface::class)->getMock();
         $router->expects(static::any())
             ->method('generate')
-            ->will(static::onConsecutiveCalls($urlPrefix.'a/path/to/an/resolve/image1.png', $urlPrefix.'a/path/to/an/resolve/image2.png', $urlPrefix.'a/path/to/an/resolve/image3.png', $urlPrefix.'a/path/to/an/resole/image4.png'))
+            ->will(static::onConsecutiveCalls(
+                $urlPrefix.'a/path/to/an/resolve/image1.png',
+                $urlPrefix.'a/path/to/an/resolve/image2.png',
+                $urlPrefix.'a/path/to/an/resolve/image3.png',
+                $urlPrefix.'a/path/to/an/resole/image4.png',
+                $urlPrefix.'a/path/to/an/resole/image5.png',
+                $urlPrefix.'a/path/to/an/resole/image6.png',
+                $urlPrefix.'a/path/to/an/resole/image7.png',
+                $urlPrefix.'a/path/to/an/resole/image8.png'
+            ))
         ;
 
         $eventDispatcher = $this->getMockBuilder(EventDispatcherInterface::class)->getMock();

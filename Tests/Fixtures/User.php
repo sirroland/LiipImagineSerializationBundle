@@ -91,11 +91,16 @@ class User
 
     /**
      * User constructor.
+     * @param null $photoName
      */
-    public function __construct()
+    public function __construct($photoName=null)
     {
         $this->setCoverUrl(__DIR__.'/test.png');
-        $this->setPhotoName(__DIR__.'/test.png');
+        if ($photoName) {
+            $this->setPhotoName(__DIR__.'/'.$photoName);
+        } else {
+            $this->setPhotoName(__DIR__.'/test.png');
+        }
         $this->setImageUrl(__DIR__.'/test.png');
     }
 
