@@ -93,7 +93,7 @@ class User
      * User constructor.
      * @param null $photoName
      */
-    public function __construct($photoName=null)
+    public function __construct($photoName = null)
     {
         $this->setCoverUrl(__DIR__.'/test.png');
         if ($photoName) {
