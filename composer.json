@@ -1,5 +1,5 @@
 {
-    "name": "bukashk0zzz/liip-imagine-serialization-bundle",
+    "name": "sirroland/liip-imagine-serialization-bundle",
     "description": "Provides integration between LiipImagineBundle and JMSSerializerBundle.",
     "keywords": ["bundle", "symfony", "JMSSerializerBundle", "LiipImagineBundle", "serialization", "liip", "imagine", "integration"],
     "homepage": "https://github.com/bukashk0zzz/LiipImagineSerializationBundle",
