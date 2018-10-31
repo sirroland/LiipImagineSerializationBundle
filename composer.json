@@ -33,7 +33,7 @@
     },
     "autoload": {
         "psr-4": {
-            "sirroland\\LiipImagineSerializationBundle\\": ""
+            "Bukashk0zzz\\LiipImagineSerializationBundle\\": ""
         }
     }
 }
